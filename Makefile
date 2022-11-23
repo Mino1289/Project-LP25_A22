@@ -1,50 +1,45 @@
-CXX = gcc
+CC = gcc
 CFLAGS = -Wall -Werror -fpic -pedantic 
-LIBSDIR = -L.
-INCLUDEDIR = -I.
-
-LIBCORENAME = projet
+LIBSDIR = -L. -L/usr/lib
+INCLUDEDIR = -I. -I/usr/include
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	CFLAGS += -ggdb -DDEBUG
 endif
 
-ifeq ($(OS), Windows_NT)
-	EXPORT = export.bat
-	LIBTARGET :=$(LIBCORENAME:=.dll)
-	CLEANCMD = @del /q *.o *.dll *.exe *.so main.txt
-else
-	EXPORT = sh export.sh
-	LIBTARGET :=lib$(LIBCORENAME:=.so)
-	LIBSDIR += -L/usr/lib
-	INCLUDEDIR += -I/usr/include
-	CLEANCMD = rm -rf *.o *.so *.exe *.dll 
-endif
+SOURCEDIR=.
+BUILDDIR=build
 
-LIBSOURCE = analysis configuration direct_fork fifo_processes mq_processes reducers utility
-LIBSOURCECFILE = $(LIBSOURCE:=.c)
-LIBSOURCEOFILE = $(LIBSOURCE:=.o)
+SOURCES = $(wildcard $(SOURCEDIR)/*.c)
+OBJECTS = $(patsubst $(SOURCEDIR)/%.c,$(BUILDDIR)/%.o,$(SOURCES))
+
 
 EXESOURCE = main
-TARGET = $(EXESOURCE:=.exe)
-EXESOURCECFILE = $(EXESOURCE:=.c)
-EXESOURCEOFILE = $(EXESOURCE:=.o)
+EXECUTABLE = $(EXESOURCE:=.exe)
+LIBCORENAME = mappeReducer
+LIBTARGET:=lib$(LIBCORENAME:=.so)
 
-all: $(TARGET)
+all: dir $(OBJECTS) $(EXECUTABLE) $(LIBTARGET)
 
-run: $(TARGET)
-	$(EXPORT) $(TARGET)
+dir:
+	@mkdir -p $(BUILDDIR)
 
-$(TARGET): $(EXESOURCEOFILE) $(LIBTARGET) 
-	$(CXX) $(EXESOURCEOFILE) -l$(LIBCORENAME) $(LIBSDIR) -o $(TARGET) -lm
+run: all
+	@export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
+	./$(EXECUTABLE)
 
-$(LIBTARGET): $(LIBSOURCEOFILE) 
-	$(CXX) $(CFLAGS) -shared $(LIBSOURCEOFILE) -o $(LIBTARGET)
+$(EXECUTABLE): $(LIBTARGET)
+	$(CC) $(CFLAGS) $(INCLUDEDIR) $(LIBSDIR) -o $(EXECUTABLE) -l$(LIBCORENAME) -lm
 
-.c.o:
-	$(CXX) $(CFLAGS) $(INCLUDEDIR) -c -o $@ $<
+$(LIBTARGET) : $(OBJECTS)
+	$(CC) $(CFLAGS) -shared $(OBJECTS) -o $(LIBTARGET)
 
-clean: 
-	$(CLEANCMD)
-	@echo CLEAN
+$(BUILDDIR)/$(EXECUTABLE): $(OBJECTS)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(OBJECTS): $(BUILDDIR)/%.o : $(SOURCEDIR)/%.c
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+clean:
+	@rm -rf $(BUILDDIR) *.exe *.so
