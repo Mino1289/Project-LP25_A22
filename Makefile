@@ -25,7 +25,6 @@ dir:
 	@mkdir -p $(BUILDDIR)
 
 run: all
-	@export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
 	./$(EXECUTABLE)
 
 $(EXECUTABLE): $(LIBTARGET)
@@ -41,7 +40,6 @@ $(OBJECTS): $(BUILDDIR)/%.o : $(SOURCEDIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 test: all
-	@export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
 	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all -q ./$(EXECUTABLE)
 
 binpack: all
