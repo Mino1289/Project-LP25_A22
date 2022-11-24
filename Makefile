@@ -15,18 +15,16 @@ SOURCES = $(wildcard $(SOURCEDIR)/*.c)
 OBJECTS = $(patsubst $(SOURCEDIR)/%.c,$(BUILDDIR)/%.o,$(SOURCES))
 
 
-EXESOURCE = main
-EXECUTABLE = $(EXESOURCE:=.exe)
+EXECUTABLE = main
 LIBCORENAME = mappeReducer
 LIBTARGET:=lib$(LIBCORENAME:=.so)
 
-all: dir $(OBJECTS) $(EXECUTABLE) $(LIBTARGET)
+all: dir $(OBJECTS) $(LIBTARGET) $(EXECUTABLE)
 
 dir:
 	@mkdir -p $(BUILDDIR)
 
 run: all
-	@export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
 	./$(EXECUTABLE)
 
 $(EXECUTABLE): $(LIBTARGET)
@@ -41,5 +39,14 @@ $(BUILDDIR)/$(EXECUTABLE): $(OBJECTS)
 $(OBJECTS): $(BUILDDIR)/%.o : $(SOURCEDIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
+ci: all
+	$(CC) $(CFLAGS) $(INCLUDEDIR) $(LIBSDIR) $(OBJECTS) -o $(EXECUTABLE) -lm
+
+test: ci
+	valgrind --track-origins=yes ./$(EXECUTABLE)
+
+binpack: all
+	tar -czf binpack-$(LIBCORENAME).tgz $(LIBTARGET) main
+
 clean:
-	@rm -rf $(BUILDDIR) *.exe *.so
+	@rm -rf $(BUILDDIR) *.so main *.tgz
