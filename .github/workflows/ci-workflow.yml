@@ -1,0 +1,23 @@
+name: Continuous integration
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt-get install valgrind
+      - uses: actions/checkout@v3
+      - run: make -j2 DEBUG=1
+      - run: make test
+      - run: make binpack
+      
+      - uses: actions/upload-artifact@master
+        with:
+          name: binpack-mappeReducer.tgz
+          path: binpack-mappeReducer.tgz
+
+env:
+  ACCEPT_OFFICIAL_TOS: 1
