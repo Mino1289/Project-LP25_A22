@@ -39,8 +39,11 @@ $(BUILDDIR)/$(EXECUTABLE): $(OBJECTS)
 $(OBJECTS): $(BUILDDIR)/%.o : $(SOURCEDIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-test: all
-	valgrind --track-origins=yes --leak-check=full --show-leak-kinds=all -q ./$(EXECUTABLE)
+ci: all
+	$(CC) $(CFLAGS) $(INCLUDEDIR) $(LIBSDIR) $(OBJECTS) -o $(EXECUTABLE) -lm
+
+test: ci
+	valgrind --track-origins=yes ./$(EXECUTABLE)
 
 binpack: all
 	tar -czf binpack-$(LIBCORENAME).tgz $(LIBTARGET) main

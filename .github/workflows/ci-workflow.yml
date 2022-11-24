@@ -11,7 +11,6 @@ jobs:
       - run: sudo apt-get install valgrind
       - uses: actions/checkout@v3
       - run: make -j2 DEBUG=1
-      - run: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
       - run: make test
       - run: make binpack
       
