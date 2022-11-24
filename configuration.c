@@ -32,7 +32,8 @@ configuration_t *make_configuration(configuration_t *base_configuration, char *a
     };
     int opt;
 
-    configuration_t *configuration = base_configuration;
+    configuration_t *configuration = (configuration_t *) malloc(sizeof(configuration_t));
+    memcpy(configuration, base_configuration, sizeof(configuration_t));
 
     while ((opt = getopt_long(argc, argv, "vd:t:o:c:", my_opts, NULL)) != EOF) {
         switch (opt) {
@@ -63,6 +64,7 @@ configuration_t *make_configuration(configuration_t *base_configuration, char *a
     if (is_configuration_valid(configuration)) {
         return configuration;
     } else {
+        free(configuration);
         return base_configuration;
     }
 }
