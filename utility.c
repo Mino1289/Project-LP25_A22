@@ -19,6 +19,19 @@
  * @return pointer to full_path if operation succeeded, NULL else
  */
 char *concat_path(char *prefix, char *suffix, char *full_path) {
+    if (prefix == NULL || suffix == NULL || full_path == NULL) {
+        return NULL;
+    }
+    // Check if the total size + 2 (for the '\0' and maybe '/') is not too big
+    if (strlen(prefix) + strlen(suffix) + 2 > STR_MAX_LEN) {
+        return NULL;
+    }
+    // TODO: maybe we have to check if prefix is a directory ?
+    strcpy(full_path, prefix);
+    if (full_path[strlen(full_path) - 1] != '/') {
+        strcat(full_path, "/");
+    }
+    strcat(full_path, suffix);
     return full_path;
 }
 
