@@ -105,6 +105,12 @@ char *check_equal(char *str) {
  * @return a pointer to the character after the end of the extracted word
  */
 char *get_word(char *source, char *target) {
+    while (*source != '\0' && !isspace(*source)) {
+        *target = *source;
+        ++target;
+        ++source;
+    }
+    *target = '\0';
     return source;
 }
 
