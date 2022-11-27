@@ -75,6 +75,9 @@ configuration_t *make_configuration(configuration_t *base_configuration, char *a
  * @return a pointer to the first non-space character in str
  */
 char *skip_spaces(char *str) {
+    while (isspace(*str)) {
+        str++;
+    }
     return str;
 }
 
@@ -85,7 +88,14 @@ char *skip_spaces(char *str) {
  * @return a pointer to the first non-space character after the =, NULL if no equal was found
  */
 char *check_equal(char *str) {
-    return str;
+    str = skip_spaces(str);
+    if (*str == '=') {
+        ++str;
+        str = skip_spaces(str);
+        return str;
+    } else {
+        return NULL;
+    }
 }
 
 /*!
