@@ -33,6 +33,10 @@ void parse_dir(char *path, FILE *output_file) {
  * @param list the list to be cleared
  */
 void clear_recipient_list(simple_recipient_t *list) {
+    if (list != NULL) {
+        clear_recipient_list(list->next);
+        free(list);
+    }
 }
 
 /*!
@@ -42,7 +46,9 @@ void clear_recipient_list(simple_recipient_t *list) {
  * @return a pointer to the new recipient (to update the list with)
  */
 simple_recipient_t *add_recipient_to_list(char *recipient_email, simple_recipient_t *list) {
-    return NULL;
+    simple_recipient_t *new_mail = (simple_recipient_t *) malloc(sizeof(simple_recipient_t));
+    strcpy(new_mail->email, recipient_email);
+    return new_mail;
 }
 
 /*!
