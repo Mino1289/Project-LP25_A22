@@ -4,6 +4,7 @@
 
 #include "utility.h"
 
+#include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
 #include <libgen.h>
@@ -41,7 +42,14 @@ char *concat_path(char *prefix, char *suffix, char *full_path) {
  * @return true if directory exists, false else
  */
 bool directory_exists(char *path) {
-    return false;
+    DIR *dir = opendir(path);
+    if (dir) {
+        closedir(dir);
+        return true;
+    } else {
+        closedir(dir);
+        return false;
+    }
 }
 
 /*!
@@ -52,7 +60,11 @@ bool directory_exists(char *path) {
  * @return true if path to file exists, false else
  */
 bool path_to_file_exists(char *path) {
-    return false;
+    char* path_to_file = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+    path_to_file = realpath(path, path_to_file);
+    bool exists = directory_exists(path_to_file);
+    free(path_to_file);
+    return exists;
 }
 
 /*!
@@ -70,5 +82,8 @@ void sync_temporary_files(char *temp_dir) {
  * @return a pointer to the next not . or .. directory, NULL if none remain
  */
 struct dirent *next_dir(struct dirent *entry, DIR *dir) {
-    return NULL;
+    do {
+        entry = readdir(dir);
+    } while (entry == NULL || !strcmp(entry->d_name, ".") || !strcmp(entry->d_name, ".."));
+    return entry;
 }
