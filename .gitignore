@@ -3,4 +3,7 @@
 *.dll
 *.so
 /build
+main
+
 .vscode
+*.tgz
