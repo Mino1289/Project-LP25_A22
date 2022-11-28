@@ -75,6 +75,9 @@ configuration_t *make_configuration(configuration_t *base_configuration, char *a
  * @return a pointer to the first non-space character in str
  */
 char *skip_spaces(char *str) {
+    while (isspace(*str)) {
+        str++;
+    }
     return str;
 }
 
@@ -85,7 +88,14 @@ char *skip_spaces(char *str) {
  * @return a pointer to the first non-space character after the =, NULL if no equal was found
  */
 char *check_equal(char *str) {
-    return str;
+    str = skip_spaces(str);
+    if (*str == '=') {
+        ++str;
+        str = skip_spaces(str);
+        return str;
+    } else {
+        return NULL;
+    }
 }
 
 /*!
@@ -95,6 +105,12 @@ char *check_equal(char *str) {
  * @return a pointer to the character after the end of the extracted word
  */
 char *get_word(char *source, char *target) {
+    while (*source != '\0' && !isspace(*source)) {
+        *target = *source;
+        ++target;
+        ++source;
+    }
+    *target = '\0';
     return source;
 }
 
@@ -106,6 +122,40 @@ char *get_word(char *source, char *target) {
  * @return a pointer to the base configuration after update, NULL is reading failed.
  */
 configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_to_cfg_file) {
+    FILE *cfg_file = fopen(path_to_cfg_file, "r");
+    if (cfg_file == NULL) {
+        return base_configuration;
+    }
+    
+    while (!feof(cfg_file)) {
+        char line[STR_MAX_LEN], key[STR_MAX_LEN], value[STR_MAX_LEN];
+        fgets(line, STR_MAX_LEN, cfg_file);
+        strcpy(line, skip_spaces(line));
+        strcpy(line, get_word(line, key));
+        strcpy(line, check_equal(line));
+        strcpy(line, skip_spaces(line));
+        strcpy(line, get_word(line, value));
+
+        if (strcmp(key, "data_path") == 0) {
+            strncpy(base_configuration->data_path, value, STR_MAX_LEN);
+        } else if (strcmp(key, "temporary_directory") == 0) {
+            strncpy(base_configuration->temporary_directory, value, STR_MAX_LEN);
+        } else if (strcmp(key, "output_file") == 0) {
+            strncpy(base_configuration->output_file, value, STR_MAX_LEN);
+        } else if (strcmp(key, "cpu_core_multiplier") == 0) {
+            base_configuration->cpu_core_multiplier = atoi(value);
+        } else if (strcmp(key, "is_verbose") == 0) {
+            if (strcmp(value, "true") == 0 || strcmp(value, "1") == 0 || strcmp(value, "yes") == 0) {
+                base_configuration->is_verbose = true;
+            } else {
+                base_configuration->is_verbose = false;
+            }
+            base_configuration->is_verbose = true;
+        } else {
+            printf("Unknown key: %s\n", key);
+        }
+    }
+
     return base_configuration;
 }
 
