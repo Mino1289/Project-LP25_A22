@@ -18,15 +18,52 @@
  * @param source_email the e-mail to add as a string
  * @return a pointer to the updated beginning of the list
  */
-sender_t *add_source_to_list(sender_t *list, char *source_email) {
-    return NULL;
+sender_t* add_source_to_list(sender_t* list, char* source_email)
+{
+
+    sender_t* temp_sender = list;
+    _Bool is_here = false;
+
+    while (temp_sender != NULL && is_here == false) {
+        if (strcmp(temp_sender->sender_address, source_email)) {
+            is_here = true;
+            return list;
+        }
+        temp_sender = temp_sender->next;
+    }
+
+    sender_t* new_sender = (sender_t*)malloc(sizeof(sender_t));
+    new_sender->sender_address = source_email;
+    new_sender->next = list;
+    list->prev = new_sender;
+    new_sender->prev = NULL;
+
+    new_sender->head = (recipient_t*)malloc(sizeof(recipient_t));
+    new_sender->tail = new_sender->head;
+    new_sender->head->occurrences = 0;
+    new_sender->head->next = NULL;
+    new_sender->head->prev = NULL;
+
+    return new_sender;
 }
 
 /*!
  * @brief clear_sources_list clears the list of e-mail sources (therefore clearing the recipients of each source)
  * @param list a pointer to the list to clear
  */
-void clear_sources_list(sender_t *list) {
+void clear_sources_list(sender_t* list)
+{
+    if (list == NULL){
+        return;
+    }else{
+        clear_sources_list(list->next);
+        while(list->head->next != NULL){
+            list->head=list->head->next;
+            free(list->head->prev);
+        }
+        free(list->head);
+        free(list);
+    }
 }
 
 /*!
@@ -35,7 +72,8 @@ void clear_sources_list(sender_t *list) {
  * @param source_email the e-mail as a string to look for
  * @return a pointer to the matching source, NULL if none exists
  */
-sender_t *find_source_in_list(sender_t *list, char *source_email) {
+sender_t* find_source_in_list(sender_t* list, char* source_email)
+{
     return NULL;
 }
 
@@ -46,7 +84,8 @@ sender_t *find_source_in_list(sender_t *list, char *source_email) {
  * @param source a pointer to the source to add/update the recipient to
  * @param recipient_email the recipient e-mail to add/update as a string
  */
-void add_recipient_to_source(sender_t *source, char *recipient_email) {
+void add_recipient_to_source(sender_t* source, char* recipient_email)
+{
 }
 
 /*!
@@ -56,7 +95,8 @@ void add_recipient_to_source(sender_t *source, char *recipient_email) {
  * @param temp_files the temporary files directory, where to read files to be concatenated
  * @param output_file path to the output file (default name is step1_output, but we'll keep it as a parameter).
  */
-void files_list_reducer(char *data_source, char *temp_files, char *output_file) {
+void files_list_reducer(char* data_source, char* temp_files, char* output_file)
+{
 }
 
 /*!
@@ -66,5 +106,6 @@ void files_list_reducer(char *data_source, char *temp_files, char *output_file) 
  * @param temp_file path to temp output file
  * @param output_file final output file to be written by your function
  */
-void files_reducer(char *temp_file, char *output_file) {
+void files_reducer(char* temp_file, char* output_file)
+{
 }
