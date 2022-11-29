@@ -47,7 +47,8 @@ int main(int argc, char *argv[]) {
     };
     make_configuration(&config, argv, argc);
     if (!is_configuration_valid(&config)) {
-        printf("Incorrect configuration:\n");
+        printf("Incorrect configuration\n");
+        printf("\nUsage: %s -d <data_path> -t <temporary_directory> -o <output_file> [-v] [-n <cpu_core_multiplier>] -f <config-file>\n", argv[0]);
         display_configuration(&config);
         printf("\nExiting\n");
         return -1;
