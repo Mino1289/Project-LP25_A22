@@ -25,7 +25,7 @@ sender_t* add_source_to_list(sender_t* list, char* source_email)
     _Bool is_here = false;
 
     while (temp_sender != NULL && is_here == false) {
-        if (strcmp(temp_sender->sender_address, source_email)) {
+        if (strcmp(temp_sender->sender_address, source_email)==0) {
             is_here = true;
             return list;
         }
