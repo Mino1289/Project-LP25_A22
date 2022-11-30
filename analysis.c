@@ -51,9 +51,9 @@ void parse_dir(char *path, FILE *output_file) {
                 break;
         }
     }
+    //dirent pointer should not be free'd
     closedir(dir);
     free(entry_path);
-    //dirent pointer should not be free'd
 
     //TODO: die
 }
@@ -92,6 +92,16 @@ simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
     // 2. Go through buffer and extract e-mails
     // 3. Add each e-mail to list
     // 4. Return list
+
+
+    /* if (buffer) {
+        char *tmp = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+        tmp = strtok(buffer, "\n");
+        while (tmp != EOF) {
+
+        }
+        //utiliser strstr ?
+    } */
     return list;
 }
 
