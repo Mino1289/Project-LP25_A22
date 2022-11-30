@@ -20,32 +20,32 @@
  */
 sender_t* add_source_to_list(sender_t* list, char* source_email)
 {   
-    //marche pas
-    // sender_t* temp_sender = list;
-    // bool is_here = false;
+    sender_t* temp_sender = list;
+    bool is_here = false;
 
-    // while (temp_sender != NULL && is_here == false) {
-    //     if (strcmp(temp_sender->sender_address, source_email) == 0) {
-    //         is_here = true;
-    //         return list;
-    //     }
-    //     temp_sender = temp_sender->next;
-    // }
-    // sender_t* new_sender = (sender_t*)malloc(sizeof(sender_t));
-    // strncpy(new_sender->sender_address,source_email,STR_MAX_LEN);
+    while (temp_sender != NULL && is_here == false) {
+        if (strcmp(temp_sender->sender_address, source_email) == 0) {
+            is_here = true;
+            return list;
+        }
+        temp_sender = temp_sender->next;
+    }
 
-    // if(list != NULL){ 
-    //     new_sender->next = list;
-    //     list->prev = new_sender;
-    // }else{
-    //     new_sender->next = NULL;
-    //     new_sender->prev = NULL;
-    // }   
+    sender_t* new_sender = (sender_t*)malloc(sizeof(sender_t));
+    strncpy(new_sender->sender_address,source_email,STR_MAX_LEN);
 
-    // new_sender->head = NULL;
-    // new_sender->tail = NULL;
+    if(list != NULL){ 
+        new_sender->next = list;
+        list->prev = new_sender;
+    }else{
+        new_sender->next = NULL;
+        new_sender->prev = NULL;
+    }   
 
-    // return new_sender;
+    new_sender->head = NULL;
+    new_sender->tail = NULL;
+
+    return new_sender;
 }
 
 /*!
@@ -54,20 +54,20 @@ sender_t* add_source_to_list(sender_t* list, char* source_email)
  */
 void clear_sources_list(sender_t* list)
 {   
-    //marche pas non plus
-    // if (list == NULL) {
-    //     return;
-    // } else {
-    //     clear_sources_list(list->next);
-    //     while (list->head->next != NULL) {
-    //         list->head = list->head->next;
-    //         free(list->head->prev);
-    //     }
-    //     free(list->head);
-    //     free(list);
-    // }
+    if (list == NULL) {
+        return;
+    } else {
+        clear_sources_list(list->next);
+        if(list->head != NULL){
+            while (list->head->next != NULL) {
+                list->head = list->head->next;
+                free(list->head->prev);
+            }
+            free(list->head);
+        }
+        free(list);
+    }
 }
-
 /*!
  * @brief find_source_in_list looks for an e-mail address in the sources list and returns a pointer to it.
  * @param list the list to look into for the e-mail
