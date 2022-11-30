@@ -104,7 +104,7 @@ void add_recipient_to_source(sender_t* source, char* recipient_email){
             if (source->head == NULL) {
                 source->head = new_recipient;
                 source->tail = new_recipient;
-                new_recipient->next = NULL
+                new_recipient->next = NULL;
                 new_recipient->prev = NULL;
             } else {
                 new_recipient->next = source->head;
