@@ -9,7 +9,4 @@ maildir
 main
 
 .vscode
-
-/build
-main
-
+*.tgz

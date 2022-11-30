@@ -26,6 +26,36 @@ void parse_dir(char *path, FILE *output_file) {
     // 1. Check parameters
     // 2. Gor through all entries: if file, write it to the output file; if a dir, call parse dir on it
     // 3. Clear all allocated resources
+
+    if (!directory_exists(path)) {
+        return;
+    }
+    DIR *dir = opendir(path);
+    if (!dir) {
+        return;
+    }
+    struct dirent *entries = next_dir(entries, dir);
+    char *entry_path = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+
+    while (entries) {
+        entries = next_dir(entries, dir);
+        switch (entries->d_type) {
+            case DT_DIR:
+                entry_path = concat_path(path, entries->d_name, entry_path);
+                parse_dir(entry_path, output_file);
+                break;
+            case DT_REG:
+                entry_path = concat_path(path, entries->d_name, entry_path);
+                fprintf(output_file, "%s", entry_path);
+            default:
+                break;
+        }
+    }
+    //dirent pointer should not be free'd
+    closedir(dir);
+    free(entry_path);
+
+    //TODO: die
 }
 
 /*!
@@ -62,6 +92,16 @@ simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
     // 2. Go through buffer and extract e-mails
     // 3. Add each e-mail to list
     // 4. Return list
+
+
+    /* if (buffer) {
+        char *tmp = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+        tmp = strtok(buffer, "\n");
+        while (tmp != EOF) {
+
+        }
+        //utiliser strstr ?
+    } */
     return list;
 }
 
@@ -93,6 +133,10 @@ void parse_file(char *filepath, char *output) {
     // 6. Unlock file
     // 7. Close file
     // 8. Clear all allocated resources
+    if (!path_to_file_exists(filepath) || path_to_file_exists(output)) {
+        return;
+    }
+    
 }
 
 /*!
