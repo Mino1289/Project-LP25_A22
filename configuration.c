@@ -27,7 +27,8 @@ configuration_t *make_configuration(configuration_t *base_configuration, char *a
         {.name="data-source",.has_arg=1,.flag=0,.val='d'},
         {.name="temporary-directory",.has_arg=1,.flag=0,.val='t'},
         {.name="output-file",.has_arg=1,.flag=0,.val='o'},
-        {.name="cpu-multiplier",.has_arg=1,.flag=0,.val='c'},
+        {.name="cpu-multiplier",.has_arg=1,.flag=0,.val='n'},
+        {.name="config-file",.has_arg=1,.flag=0,.val='f'},
         {.name=0,.has_arg=0,.flag=0,.val=0},
     };
     int opt;
@@ -35,7 +36,7 @@ configuration_t *make_configuration(configuration_t *base_configuration, char *a
     configuration_t *configuration = (configuration_t *) malloc(sizeof(configuration_t));
     memcpy(configuration, base_configuration, sizeof(configuration_t));
 
-    while ((opt = getopt_long(argc, argv, "vd:t:o:c:", my_opts, NULL)) != EOF) {
+    while ((opt = getopt_long(argc, argv, "vd:t:o:n:f:", my_opts, NULL)) != EOF) {
         switch (opt) {
             case 'v':
                 configuration->is_verbose = true;
@@ -56,7 +57,10 @@ configuration_t *make_configuration(configuration_t *base_configuration, char *a
             case 'c':
                 configuration->cpu_core_multiplier = atoi(optarg);
                 break;
-                
+            case 'f':
+                configuration = read_cfg_file(configuration, optarg);
+                return configuration;
+                break;
             default:
                 break;
         }
@@ -122,6 +126,9 @@ char *get_word(char *source, char *target) {
  * @return a pointer to the base configuration after update, NULL is reading failed.
  */
 configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_to_cfg_file) {
+    if (base_configuration == NULL || path_to_cfg_file == NULL) {
+        return NULL;
+    }
     FILE *cfg_file = fopen(path_to_cfg_file, "r");
     if (cfg_file == NULL) {
         return base_configuration;
