@@ -19,32 +19,33 @@
  * @return a pointer to the updated beginning of the list
  */
 sender_t* add_source_to_list(sender_t* list, char* source_email)
-{
+{   
+    //marche pas
+    // sender_t* temp_sender = list;
+    // bool is_here = false;
 
-    sender_t* temp_sender = list;
-    bool is_here = false;
+    // while (temp_sender != NULL && is_here == false) {
+    //     if (strcmp(temp_sender->sender_address, source_email) == 0) {
+    //         is_here = true;
+    //         return list;
+    //     }
+    //     temp_sender = temp_sender->next;
+    // }
+    // sender_t* new_sender = (sender_t*)malloc(sizeof(sender_t));
+    // strncpy(new_sender->sender_address,source_email,STR_MAX_LEN);
 
-    while (temp_sender != NULL && is_here == false) {
-        if (strcmp(temp_sender->sender_address, source_email)==0) {
-            is_here = true;
-            return list;
-        }
-        temp_sender = temp_sender->next;
-    }
+    // if(list != NULL){ 
+    //     new_sender->next = list;
+    //     list->prev = new_sender;
+    // }else{
+    //     new_sender->next = NULL;
+    //     new_sender->prev = NULL;
+    // }   
 
-    sender_t* new_sender = (sender_t*)malloc(sizeof(sender_t));
-    new_sender->sender_address = source_email;
-    new_sender->next = list;
-    list->prev = new_sender;
-    new_sender->prev = NULL;
+    // new_sender->head = NULL;
+    // new_sender->tail = NULL;
 
-    new_sender->head = (recipient_t*)malloc(sizeof(recipient_t));
-    new_sender->tail = new_sender->head;
-    new_sender->head->occurrences = 0;
-    new_sender->head->next = NULL;
-    new_sender->head->prev = NULL;
-
-    return new_sender;
+    // return new_sender;
 }
 
 /*!
@@ -52,18 +53,19 @@ sender_t* add_source_to_list(sender_t* list, char* source_email)
  * @param list a pointer to the list to clear
  */
 void clear_sources_list(sender_t* list)
-{
-    if (list == NULL){
-        return;
-    }else{
-        clear_sources_list(list->next);
-        while(list->head->next != NULL){
-            list->head=list->head->next;
-            free(list->head->prev);
-        }
-        free(list->head);
-        free(list);
-    }
+{   
+    //marche pas non plus
+    // if (list == NULL) {
+    //     return;
+    // } else {
+    //     clear_sources_list(list->next);
+    //     while (list->head->next != NULL) {
+    //         list->head = list->head->next;
+    //         free(list->head->prev);
+    //     }
+    //     free(list->head);
+    //     free(list);
+    // }
 }
 
 /*!
@@ -74,7 +76,16 @@ void clear_sources_list(sender_t* list)
  */
 sender_t* find_source_in_list(sender_t* list, char* source_email)
 {
-    return NULL;
+    sender_t* temp = list;
+
+    while (temp != NULL && temp->sender_address != source_email) {
+        temp = temp->next;
+    }
+    if (temp == NULL) {
+        return NULL;
+    } else {
+        return temp;
+    }
 }
 
 /*!
