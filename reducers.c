@@ -32,7 +32,7 @@ sender_t* add_source_to_list(sender_t* list, char* source_email)
     }
 
     sender_t* new_sender = (sender_t*)malloc(sizeof(sender_t));
-    strncpy(new_sender->sender_address,source_email,STR_MAX_LEN);
+    strncpy(new_sender->sender_address, source_email, STR_MAX_LEN);
 
     if(list != NULL){ 
         new_sender->next = list;
@@ -78,7 +78,7 @@ sender_t* find_source_in_list(sender_t* list, char* source_email)
 {
     sender_t* temp = list;
 
-    while (temp != NULL && temp->sender_address != source_email) {
+    while (temp != NULL && strcmp(temp->sender_address,source_email)!=0) {
         temp = temp->next;
     }
     if (temp == NULL) {
