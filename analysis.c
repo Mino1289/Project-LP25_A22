@@ -34,7 +34,7 @@ void parse_dir(char *path, FILE *output_file) {
     if (!dir) {
         return;
     }
-    struct dirent *entries = next_dir(entries, dir);
+    struct dirent *entries = readdir(dir);
     char *entry_path = (char *) malloc(sizeof(char) * STR_MAX_LEN);
 
     while (entries) {
@@ -54,8 +54,6 @@ void parse_dir(char *path, FILE *output_file) {
     //dirent pointer should not be free'd
     closedir(dir);
     free(entry_path);
-
-    //TODO: die
 }
 
 /*!
@@ -92,7 +90,7 @@ simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
     // 2. Go through buffer and extract e-mails
     // 3. Add each e-mail to list
     // 4. Return list
-
+    //ON LUI PASSE UNE LIGNE d'EMAIL
 
     /* if (buffer) {
         char *tmp = (char *) malloc(sizeof(char) * STR_MAX_LEN);
@@ -111,6 +109,7 @@ simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
  * @param destination the buffer into which the e-mail is copied
  */
 void extract_e_mail(char buffer[], char destination[]) {
+    //ON EXTRAIT LES EMAILS D'UNE LIGNE
 }
 
 // Used to track status in e-mail (for multi lines To, Cc, and Bcc fields)
