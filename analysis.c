@@ -24,9 +24,6 @@
  */
 void parse_dir(char *path, FILE *output_file) {
     // 1. Check parameters
-    // 2. Gor through all entries: if file, write it to the output file; if a dir, call parse dir on it
-    // 3. Clear all allocated resources
-
     if (!directory_exists(path)) {
         return;
     }
@@ -37,6 +34,7 @@ void parse_dir(char *path, FILE *output_file) {
     struct dirent *entries = readdir(dir);
     char *entry_path = (char *) malloc(sizeof(char) * STR_MAX_LEN);
 
+    // 2. Gor through all entries: if file, write it to the output file; if a dir, call parse dir on it
     while (entries) {
         entries = next_dir(entries, dir);
         switch (entries->d_type) {
@@ -51,7 +49,7 @@ void parse_dir(char *path, FILE *output_file) {
                 break;
         }
     }
-    //dirent pointer should not be free'd
+    // 3. Clear all allocated resources (dirent pointer should not be free'd)
     closedir(dir);
     free(entry_path);
 }
@@ -79,29 +77,6 @@ simple_recipient_t *add_recipient_to_list(char *recipient_email, simple_recipien
     return new_mail;
 }
 
-/*!
- * @brief extract_emails extracts all the e-mails from a buffer and put the e-mails into a recipients list
- * @param buffer the buffer containing one or more e-mails
- * @param list the resulting list
- * @return the updated list
- */
-simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
-    // 1. Check parameters
-    // 2. Go through buffer and extract e-mails
-    // 3. Add each e-mail to list
-    // 4. Return list
-    //ON LUI PASSE UNE LIGNE d'EMAIL
-
-    /* if (buffer) {
-        char *tmp = (char *) malloc(sizeof(char) * STR_MAX_LEN);
-        tmp = strtok(buffer, "\n");
-        while (tmp != EOF) {
-
-        }
-        //utiliser strstr ?
-    } */
-    return list;
-}
 
 /*!
  * @brief extract_e_mail extracts an e-mail from a buffer
@@ -109,7 +84,29 @@ simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
  * @param destination the buffer into which the e-mail is copied
  */
 void extract_e_mail(char buffer[], char destination[]) {
-    //ON EXTRAIT LES EMAILS D'UNE LIGNE
+    //enlever la merde du buffer pour garder juste le mail
+    //exemple: "To: darren.adamik@enron.com" -> "darren.adamik@enron.com"
+}
+
+/*!
+ * @brief extract_emails extracts all the e-mails from a buffer and put the e-mails into a recipients list
+ * @param buffer the buffer containing one or more e-mails
+ * @param list the resulting list
+ * @return the updated list
+ */
+simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
+    if (buffer) { // 1. Check parameters
+        char *token = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+        token = strtok(buffer, ",");
+        while (token) {
+            char dest[STR_MAX_LEN];
+            extract_e_mail(token, dest); // 2. Go through buffer and extract e-mails
+            list = add_recipient_to_list(dest, list); // 3. Add each e-mail to list
+            token = strtok(NULL, ",");
+        }
+        free(token);
+    }
+    return list; // 4. Return list
 }
 
 // Used to track status in e-mail (for multi lines To, Cc, and Bcc fields)
@@ -124,17 +121,53 @@ typedef enum {IN_DEST_FIELD, OUT_OF_DEST_FIELD} read_status_t;
  * and clear_recipient_list
  */
 void parse_file(char *filepath, char *output) {
-    // 1. Check parameters
+
+    FILE *file, *output_file;
+
+    if (!path_to_file_exists(filepath) || !path_to_file_exists(output) || !(file = fopen(filepath, "r")) || !(output_file = fopen(output, "a"))) {
+        return; // 1. Check parameters
+    }
+    char *buffer = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+    char sender[STR_MAX_LEN];
+    read_status_t read_status = OUT_OF_DEST_FIELD;
+    simple_recipient_t *recipient_list = NULL;
+
     // 2. Go through e-mail and extract From: address into a buffer
-    // 3. Extract recipients (To, Cc, Bcc fields) and put it to a recipients list.
-    // 4. Lock output file
-    // 5. Write to output file according to project instructions
-    // 6. Unlock file
-    // 7. Close file
-    // 8. Clear all allocated resources
-    if (!path_to_file_exists(filepath) || path_to_file_exists(output)) {
+    while ((buffer = fgets(buffer,STR_MAX_LEN, file)) && !strstr(buffer, "From:"));
+    if (!buffer) {
         return;
     }
+    strcpy(sender, buffer);
+    read_status = IN_DEST_FIELD;
+
+    // 3. Extract recipients (To, Cc, Bcc fields) and put it to a recipients list.
+    while (read_status == IN_DEST_FIELD) {
+        fgets(buffer, STR_MAX_LEN, file);
+        if (buffer[0] != '\t' && (!strstr(buffer, "To:") || !strstr(buffer, "Cc:") || !strstr(buffer, "Bcc:"))) {
+            read_status = OUT_OF_DEST_FIELD;
+        } else {
+            recipient_list = extract_emails(buffer, recipient_list);
+        }
+    }
+
+    flock(fileno(output_file), LOCK_SH); // 4. Lock output file
+
+    // 5. Write to output file according to project instructions
+    fprintf(output_file, "%s ", sender);
+    for (simple_recipient_t *recipient = recipient_list; recipient != NULL; recipient = recipient->next) {
+        fprintf(output_file, "%s ", recipient->email);
+    }
+
+    flock(fileno(output_file), LOCK_UN); // 6. Unlock file
+
+    // 7. Close file
+    fclose(file);
+    fclose(output_file);
+
+    // 8. Clear all allocated resources
+    free(buffer);
+    clear_recipient_list(recipient_list);
+    
     
 }
 
