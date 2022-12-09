@@ -23,6 +23,14 @@
  * @param file_format the filename format, e.g. fifo-out-%d, used to name the FIFOs
  */
 void make_fifos(uint16_t processes_count, char *file_format) {
+    char buffer[1024];
+    int i = 1; 
+
+    while(i<=processes_count){
+        sprintf(buffer,"%s%d",file_format,i);
+        mkfifo(buffer,0666);
+        i++;
+    }
 }
 
 /*!
@@ -31,6 +39,14 @@ void make_fifos(uint16_t processes_count, char *file_format) {
  * @param file_format the filename format, e.g. fifo-out-%d, used to name the FIFOs
  */
 void erase_fifos(uint16_t processes_count, char *file_format) {
+    char buffer[1024];
+    int i = 1; 
+
+    while(i<=processes_count){
+        sprintf(buffer,"%s%d",file_format,i);
+        close(buffer);
+        i++;
+    }
 }
 
 /*!
