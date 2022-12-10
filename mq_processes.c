@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include <bits/types/sig_atomic_t.h>
+// #include <bits/types/sig_atomic_t.h>
 #include <stdio.h>
 
 #include "utility.h"
@@ -20,22 +20,37 @@
  * @brief make_message_queue creates the message queue used for communications between parent and worker processes
  * @return the file descriptor of the message queue
  */
-int make_message_queue() {
-    return -1;
+
+int make_message_queue()
+{
+    int mq = msgget(IPC_PRIVATE, 0600);
+    if (mq == -1)
+    {
+        perror("msgget");
+        exit(EXIT_FAILURE);
+    }
+    return mq;
 }
 
 /*!
  * @brief close_message_queue closes a message queue
  * @param mq the descriptor of the MQ to close
  */
-void close_message_queue(int mq) {
+void close_message_queue(int mq)
+{
+    if (msgctl(mq, IPC_RMID, NULL) == -1)
+    {
+        perror("msgctl");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /*!
  * @brief child_process is the function handling code for a child
  * @param mq message queue descriptor used to communicate with the parent
  */
-void child_process(int mq) {
+void child_process(int mq)
+{
     // 1. Endless loop (interrupted by a task whose callback is NULL)
     // 2. Upon reception of a task: check is not NULL
     // 2 bis. If not NULL -> execute it and notify parent
