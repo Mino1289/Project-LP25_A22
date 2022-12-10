@@ -84,7 +84,14 @@ int *open_fifos(uint16_t processes_count, char *file_format, int flags) {
  * @param files the array of opened FIFOs as file descriptors
  */
 void close_fifos(uint16_t processes_count, int *files) {
-    
+     
+  for (int i = 0; i < processes_count; i++) {
+    if (files[i] >= 0) {
+        if (close(files[i]) != 0) {
+        fprintf(stderr, "Error, cannot close fifo %d\n", i);
+      }
+    }
+  }
 }
 
 /*!
