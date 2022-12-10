@@ -15,7 +15,7 @@ typedef struct _recipient {
 } recipient_t;
 
 typedef struct _sender {
-    char recipient_address[STR_MAX_LEN];
+    char sender_address[STR_MAX_LEN];
     recipient_t *head; // Head of recipient list
     recipient_t *tail; // Tail of recipient list
     struct _sender *prev;

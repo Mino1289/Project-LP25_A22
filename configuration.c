@@ -157,7 +157,6 @@ configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_t
             } else {
                 base_configuration->is_verbose = false;
             }
-            base_configuration->is_verbose = true;
         } else {
             printf("Unknown key: %s\n", key);
         }
