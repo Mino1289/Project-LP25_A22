@@ -13,6 +13,7 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "analysis.h"
 #include "utility.h"
@@ -29,7 +30,12 @@ void make_fifos(uint16_t processes_count, char *file_format) {
 
     while(i<=processes_count){
         sprintf(buffer,"%s%d",file_format,i);
-        mkfifo(buffer,0666);
+        if(mkfifo(buffer,0666) == -1){
+            if(errno != EEXIST){
+                printf("Could not create a fifo file\n");
+                return EXIT_FAILURE;
+            }
+        };
         i++;
     }
 }
