@@ -42,9 +42,7 @@ char *concat_path(char *prefix, char *suffix, char *full_path) {
  * @return true if directory exists, false else
  */
 bool directory_exists(char *path) {
-    if (!path) {
-        return false;
-    }
+    if (!path) return false;
     DIR *dir = opendir(path);
     if (dir) {
         closedir(dir);

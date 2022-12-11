@@ -24,13 +24,10 @@
  */
 void parse_dir(char *path, FILE *output_file) {
     // 1. Check parameters
-    if (!directory_exists(path)) {
-        return;
-    }
+    if (!directory_exists(path)) return;
     DIR *dir = opendir(path);
-    if (!dir) {
-        return;
-    }
+    if (!dir) return;
+
     struct dirent *entries = readdir(dir);
     char *entry_path = (char *) malloc(sizeof(char) * STR_MAX_LEN);
 
@@ -59,7 +56,7 @@ void parse_dir(char *path, FILE *output_file) {
  * @param list the list to be cleared
  */
 void clear_recipient_list(simple_recipient_t *list) {
-    if (list != NULL) {
+    if (list) {
         clear_recipient_list(list->next);
         free(list);
     }
@@ -74,6 +71,7 @@ void clear_recipient_list(simple_recipient_t *list) {
 simple_recipient_t *add_recipient_to_list(char *recipient_email, simple_recipient_t *list) {
     simple_recipient_t *new_mail = (simple_recipient_t *) malloc(sizeof(simple_recipient_t));
     strcpy(new_mail->email, recipient_email);
+    new_mail->next =  list;
     return new_mail;
 }
 
@@ -84,8 +82,10 @@ simple_recipient_t *add_recipient_to_list(char *recipient_email, simple_recipien
  * @param destination the buffer into which the e-mail is copied
  */
 void extract_e_mail(char buffer[], char destination[]) {
-    //enlever la merde du buffer pour garder juste le mail
-    //exemple: "To: darren.adamik@enron.com" -> "darren.adamik@enron.com"
+    sscanf(buffer, "%[^\n]", destination); //getting rid of \n
+    char *last = strrchr(destination, ' '); //finding last word
+    if (last) strcpy(destination, last);
+    sscanf(destination, "%s", destination); //getting rid of tabs and spaces
 }
 
 /*!
@@ -101,7 +101,7 @@ simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
         while (token) {
             char dest[STR_MAX_LEN];
             extract_e_mail(token, dest); // 2. Go through buffer and extract e-mails
-            list = add_recipient_to_list(dest, list); // 3. Add each e-mail to list
+            if (strlen(dest) > 2) list = add_recipient_to_list(dest, list); // 3. Add each e-mail to list
             token = strtok(NULL, ",");
         }
         free(token);
@@ -121,10 +121,9 @@ typedef enum {IN_DEST_FIELD, OUT_OF_DEST_FIELD} read_status_t;
  * and clear_recipient_list
  */
 void parse_file(char *filepath, char *output) {
-
     FILE *file, *output_file;
 
-    if (!path_to_file_exists(filepath) || !path_to_file_exists(output) || !(file = fopen(filepath, "r")) || !(output_file = fopen(output, "a"))) {
+    if (!(file = fopen(filepath, "r")) || !(output_file = fopen(output, "a"))) {
         return; // 1. Check parameters
     }
     char *buffer = (char *) malloc(sizeof(char) * STR_MAX_LEN);
@@ -137,25 +136,26 @@ void parse_file(char *filepath, char *output) {
     if (!buffer) {
         return;
     }
-    strcpy(sender, buffer);
+    extract_e_mail(buffer, sender);
     read_status = IN_DEST_FIELD;
 
     // 3. Extract recipients (To, Cc, Bcc fields) and put it to a recipients list.
     while (read_status == IN_DEST_FIELD) {
         fgets(buffer, STR_MAX_LEN, file);
-        if (buffer[0] != '\t' && (!strstr(buffer, "To:") || !strstr(buffer, "Cc:") || !strstr(buffer, "Bcc:"))) {
+        if (buffer[0] != '\t' && !strstr(buffer, "To:") && !strstr(buffer, "Cc:") && !strstr(buffer, "Bcc:")) {
             read_status = OUT_OF_DEST_FIELD;
         } else {
             recipient_list = extract_emails(buffer, recipient_list);
         }
     }
 
-    flock(fileno(output_file), LOCK_SH); // 4. Lock output file
+    flock(fileno(output_file), LOCK_EX); // 4. Lock output file
 
     // 5. Write to output file according to project instructions
     fprintf(output_file, "%s ", sender);
     for (simple_recipient_t *recipient = recipient_list; recipient != NULL; recipient = recipient->next) {
         fprintf(output_file, "%s ", recipient->email);
+        printf("%s\n", recipient->email);
     }
 
     flock(fileno(output_file), LOCK_UN); // 6. Unlock file
@@ -167,8 +167,6 @@ void parse_file(char *filepath, char *output) {
     // 8. Clear all allocated resources
     free(buffer);
     clear_recipient_list(recipient_list);
-    
-    
 }
 
 /*!
