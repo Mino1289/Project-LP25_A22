@@ -21,10 +21,62 @@
  */
 void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_proc) {
     // 1. Check parameters
+    if (!directory_exists(data_source)) {
+        printf("Error: data source directory does not exist.\n");
+        return;
+    }
+    if (!directory_exists(temp_files)) {
+        printf("Error: temporary files directory does not exist.\n");
+        return;
+    }
+    DIR *dir = opendir(data_source);
+    if (!dir) {
+        printf("Error: could not open data source directory.\n");
+        return;
+    }
+    uint16_t current_proc = 0;
+    struct dirent *entry = readdir(dir);
     // 2. Iterate over directories (ignore . and ..)
-    // 3. fork and start a task on current directory.
-    // 3 bis: if max processes count already run, wait for one to end before starting a task.
+    while (entry != NULL) {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            char *entry_path = concat_path(data_source, entry->d_name, NULL);
+            if (directory_exists(entry_path)) {
+                // 3 bis: if max processes count already run, wait for one to end before starting a task.
+                if (current_proc >= nb_proc) {
+                    wait(NULL);
+                    --current_proc;
+                }
+                // 3. fork and start a task on current directory.
+                pid_t pid = fork();
+                if (pid == 0) {
+                    // child process
+                    char *output_file = concat_path(temp_files, entry->d_name, NULL);
+                    FILE *output = fopen(output_file, "w");
+                    if (output == NULL) {
+                        printf("Error: could not open output file.\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    parse_dir(entry_path, output);
+                    fclose(output);
+                    exit(EXIT_SUCCESS);
+                } else if (pid > 0) {
+                    // parent process
+                    ++current_proc;
+                } else {
+                    // error
+                    printf("Error: could not fork.\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+        entry = readdir(dir);
+    }
+    for (int i = 0; i < current_proc; ++i) {
+        wait(NULL);
+    }
     // 4. Cleanup
+    closedir(dir);
+    //TODO: Check for memory leaks
 }
 
 /*!
@@ -35,8 +87,59 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
  */
 void direct_fork_files(char *data_source, char *temp_files, uint16_t nb_proc) {
     // 1. Check parameters
+    if (!directory_exists(data_source)) {
+        printf("Error: data source directory does not exist.\n");
+        return;
+    }
+    if (temp_files == NULL) {
+        printf("Error: temporary files directory does not exist.\n");
+        return;
+    }
+    DIR *dir = opendir(data_source);
+    if (!dir) {
+        printf("Error: could not open data source directory.\n");
+        return;
+    }
+    uint16_t current_proc = 0;
+    struct dirent *entry = readdir(dir);
     // 2. Iterate over files in files list (step1_output)
-    // 3. fork and start a task on current file.
-    // 3 bis: if max processes count already run, wait for one to end before starting a task.
+    while (entry != NULL) {
+        if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            char *entry_path = concat_path(data_source, entry->d_name, NULL);
+            if (path_to_file_exists(entry_path)) {
+                // 3 bis: if max processes count already run, wait for one to end before starting a task.
+                if (current_proc >= nb_proc) {
+                    wait(NULL);
+                    --current_proc;
+                }
+                // 3. fork and start a task on current file.
+                pid_t pid = fork();
+                if (pid == 0) {
+                    // child process
+                    FILE *output = fopen(temp_files, "a");
+                    if (output == NULL) {
+                        printf("Error: could not open output file.\n");
+                        exit(EXIT_FAILURE);
+                    }
+                    parse_file(entry_path, output);
+                    fclose(output);
+                    exit(EXIT_SUCCESS);
+                } else if (pid > 0) {
+                    // parent process
+                    ++current_proc;
+                } else {
+                    // error
+                    printf("Error: could not fork.\n");
+                    exit(EXIT_FAILURE);
+                }
+            }
+        }
+        entry = readdir(dir);
+    }
     // 4. Cleanup
+    for (int i = 0; i < current_proc; ++i) {
+        wait(NULL);
+    }
+    closedir(dir);
+    //TODO: Check for memory leaks
 }
