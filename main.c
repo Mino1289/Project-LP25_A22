@@ -21,9 +21,15 @@
 #include <dirent.h>
 
 // Choose a method below by uncommenting ONLY one of the following 3 lines:
+#if (defined(MQ))
 #define METHOD_MQ
-//#define METHOD_DIRECT
-//#define METHOD_FIFO
+#elif (defined(DIRECT))
+#define METHOD_DIRECT
+#elif (defined(FIFO))
+#define METHOD_FIFO
+#else
+#error "No method defined, please define one of the following: MQ, DIRECT, FIFO (compile with MQ=1, DIRECT=1 or FIFO=1)"
+#endif
 
 #ifdef METHOD_MQ
 #if (defined(METHOD_DIRECT) || defined(METHOD_FIFO))
