@@ -116,13 +116,7 @@ void direct_fork_files(char *data_source, char *temp_files, uint16_t nb_proc) {
                 pid_t pid = fork();
                 if (pid == 0) {
                     // child process
-                    FILE *output = fopen(temp_files, "a");
-                    if (output == NULL) {
-                        printf("Error: could not open output file.\n");
-                        exit(EXIT_FAILURE);
-                    }
-                    parse_file(entry_path, output);
-                    fclose(output);
+                    parse_file(entry_path, temp_files);
                     exit(EXIT_SUCCESS);
                 } else if (pid > 0) {
                     // parent process
