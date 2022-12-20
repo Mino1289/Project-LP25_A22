@@ -71,7 +71,7 @@ void clear_sources_list(sender_t* list){
 sender_t* find_source_in_list(sender_t* list, char* source_email){
     sender_t* temp = list;
 
-    while (temp != NULL && strcmp(temp->recipient_address, source_email) != 0) {
+    while (temp != NULL && strcmp(temp->sender_address, source_email) != 0) {
         temp = temp->next;
     }
     if (temp == NULL) {
