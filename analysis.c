@@ -24,16 +24,18 @@
  */
 void parse_dir(char *path, FILE *output_file) {
     // 1. Check parameters
-    if (!directory_exists(path)) return;
+
+    //if (!directory_exists(path)) return; TODO:
     DIR *dir = opendir(path);
     if (!dir) return;
-
     struct dirent *entries = readdir(dir);
+
     char *entry_path = (char *) malloc(sizeof(char) * STR_MAX_LEN);
 
     // 2. Gor through all entries: if file, write it to the output file; if a dir, call parse dir on it
     while (entries) {
         entries = next_dir(entries, dir);
+        if (entries) {
         switch (entries->d_type) {
             case DT_DIR:
                 entry_path = concat_path(path, entries->d_name, entry_path);
@@ -41,9 +43,12 @@ void parse_dir(char *path, FILE *output_file) {
                 break;
             case DT_REG:
                 entry_path = concat_path(path, entries->d_name, entry_path);
-                fprintf(output_file, "%s", entry_path);
+                fprintf(output_file, "%s\n", entry_path);
+                break;
             default:
                 break;
+        }
+
         }
     }
     // 3. Clear all allocated resources (dirent pointer should not be free'd)
@@ -181,6 +186,7 @@ void process_directory(task_t *task) {
     // 2. Go through dir tree and find all regular files
     // 3. Write all file names into output file
     // 4. Clear all allocated resources
+
 }
 
 /*!

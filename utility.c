@@ -9,6 +9,11 @@
 #include <dirent.h>
 #include <libgen.h>
 #include <unistd.h>
+#include <fcntl.h>
+
+
+#include <stdio.h>
+//TODO: remove
 
 #include "global_defs.h"
 
@@ -27,7 +32,6 @@ char *concat_path(char *prefix, char *suffix, char *full_path) {
     if (strlen(prefix) + strlen(suffix) + 2 > STR_MAX_LEN) {
         return NULL;
     }
-    // TODO: maybe we have to check if prefix is a directory ?
     strcpy(full_path, prefix);
     if (full_path[strlen(full_path) - 1] != '/') {
         strcat(full_path, "/");
@@ -74,6 +78,9 @@ bool path_to_file_exists(char *path) {
  * Use fsync and dirfd
  */
 void sync_temporary_files(char *temp_dir) {
+    int fd = open(temp_dir, O_RDONLY);
+    fsync(fd);
+    close(fd);
 }
 
 /*!
@@ -85,6 +92,6 @@ void sync_temporary_files(char *temp_dir) {
 struct dirent *next_dir(struct dirent *entry, DIR *dir) {
     do {
         entry = readdir(dir);
-    } while (entry == NULL || !strcmp(entry->d_name, ".") || !strcmp(entry->d_name, ".."));
+    } while (entry && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")));
     return entry;
 }
