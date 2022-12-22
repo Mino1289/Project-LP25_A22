@@ -25,15 +25,15 @@
  */
 void make_fifos(uint16_t processes_count, char *file_format) {
     
-    char buffer[1024];
-    int i = 1; 
+    char buffer[STR_MAX_LEN];
+    int i = 0; 
 
-    while(i<=processes_count){
+    while(i<processes_count){
         sprintf(buffer,"%s%d",file_format,i);
         if(mkfifo(buffer,0666) == -1){
             if(errno != EEXIST){
                 printf("Could not create a fifo file\n");
-                return EXIT_FAILURE;
+                exit(EXIT_FAILURE);
             }
         };
         i++;
@@ -46,8 +46,19 @@ void make_fifos(uint16_t processes_count, char *file_format) {
  * @param file_format the filename format, e.g. fifo-out-%d, used to name the FIFOs
  */
 void erase_fifos(uint16_t processes_count, char *file_format) {
-  
+    
+    char buffer[STR_MAX_LEN];
+    int i = 0;
+
+     while(i<processes_count){
+        sprintf(buffer,"%s%d",file_format,i);
+        if(remove(buffer) == -1){
+            fprintf(stderr,"Could not delete the fifo");
+        };
+        i++;
+    }
 }
+
 
 /*!
  * @brief make_processes creates processes and starts their code (waiting for commands)
@@ -72,12 +83,11 @@ pid_t *make_processes(uint16_t processes_count) {
  */
 int *open_fifos(uint16_t processes_count, char *file_format, int flags) {
     
-    make_fifos(processes_count,file_format);
     int* file_descriptor = (int*)malloc(sizeof(int)*processes_count);
-    char buffer[1024];
+    char buffer[STR_MAX_LEN];
 
     for(int i = 0 ; i<processes_count; i++ ){
-        sprintf(buffer,"%s%d",file_format,i+1);
+        sprintf(buffer,"%s%d",file_format,i);
         file_descriptor[i]= open(buffer,flags); 
     }
 
@@ -98,6 +108,8 @@ void close_fifos(uint16_t processes_count, int *files) {
       }
     }
   }
+
+  free(files);
 }
 
 /*!
