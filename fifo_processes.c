@@ -33,7 +33,7 @@ void make_fifos(uint16_t processes_count, char *file_format) {
         if(mkfifo(buffer,0666) == -1){
             if(errno != EEXIST){
                 printf("Could not create a fifo file\n");
-                return EXIT_FAILURE;
+                exit(EXIT_FAILURE);
             }
         };
         i++;
