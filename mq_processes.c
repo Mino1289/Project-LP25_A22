@@ -51,33 +51,22 @@ void close_message_queue(int mq)
  */
 void child_process(int mq)
 {
+    task_t task;
     while (1)
     {
-        task_t task;
         if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), getpid(), 0) == -1)
         {
             perror("msgrcv");
             exit(EXIT_FAILURE);
         }
 
-        if (task.task_callback != NULL)
-        {
-            task.task_callback(task.argument);
-            task.task_callback = NULL;
-            if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
-            {
-                perror("msgsnd");
-                exit(EXIT_FAILURE);
-            }
-        }
-        
-        else
+        if (task.task_callback == NULL)
         {
             break;
         }
-    }
 
-    exit(EXIT_SUCCESS);
+        task.task_callback(&task);
+    }
 }
 
 /*!
@@ -165,33 +154,7 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
  * @param worker_pid the worker PID
  */
 void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], int mq, pid_t worker_pid)
-{
-    if (data_source == NULL || temp_files == NULL || target_dir == NULL)
-    {
-        return;
-    }
 
-    task_t task = {worker_pid, NULL, NULL};
-    task.argument = malloc(sizeof(task_argument_t));
-    if (task.argument == NULL)
-    {
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
-
-    task_argument_t *argument = (task_argument_t *)task.argument;
-    argument->data_source = data_source;
-    argument->temp_files = temp_files;
-    argument->target_dir = target_dir;
-
-    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
-    {
-        perror("msgsnd");
-        exit(EXIT_FAILURE);
-    }
-
-    free(task.argument);
-}
 
 /*!
  * @brief send_file_task_to_mq sends a file task to a worker. It operates similarly to @see send_task_to_mq
