@@ -44,6 +44,10 @@
 #endif
 
 int main(int argc, char *argv[]) {
+
+    FILE *f = fopen("test_output", "w");
+    parse_dir("maildir copy", f);
+
     configuration_t config = {
             .data_path = "",
             .temporary_directory = "",
