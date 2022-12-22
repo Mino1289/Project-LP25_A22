@@ -13,6 +13,7 @@
 #include <sys/wait.h>
 #include <string.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include "analysis.h"
 #include "utility.h"
@@ -23,6 +24,20 @@
  * @param file_format the filename format, e.g. fifo-out-%d, used to name the FIFOs
  */
 void make_fifos(uint16_t processes_count, char *file_format) {
+    
+    char buffer[1024];
+    int i = 1; 
+
+    while(i<=processes_count){
+        sprintf(buffer,"%s%d",file_format,i);
+        if(mkfifo(buffer,0666) == -1){
+            if(errno != EEXIST){
+                printf("Could not create a fifo file\n");
+                return EXIT_FAILURE;
+            }
+        };
+        i++;
+    }
 }
 
 /*!
@@ -31,6 +46,7 @@ void make_fifos(uint16_t processes_count, char *file_format) {
  * @param file_format the filename format, e.g. fifo-out-%d, used to name the FIFOs
  */
 void erase_fifos(uint16_t processes_count, char *file_format) {
+  
 }
 
 /*!
@@ -55,7 +71,17 @@ pid_t *make_processes(uint16_t processes_count) {
  * @return a malloc'ed array of opened FIFOs file descriptors
  */
 int *open_fifos(uint16_t processes_count, char *file_format, int flags) {
-    return NULL;
+    
+    make_fifos(processes_count,file_format);
+    int* file_descriptor = (int*)malloc(sizeof(int)*processes_count);
+    char buffer[1024];
+
+    for(int i = 0 ; i<processes_count; i++ ){
+        sprintf(buffer,"%s%d",file_format,i+1);
+        file_descriptor[i]= open(buffer,flags); 
+    }
+
+    return file_descriptor;
 }
 
 /*!
@@ -64,6 +90,14 @@ int *open_fifos(uint16_t processes_count, char *file_format, int flags) {
  * @param files the array of opened FIFOs as file descriptors
  */
 void close_fifos(uint16_t processes_count, int *files) {
+     
+  for (int i = 0; i < processes_count; i++) {
+    if (files[i] >= 0) {
+        if (close(files[i]) != 0) {
+        fprintf(stderr, "Error, cannot close fifo %d\n", i);
+      }
+    }
+  }
 }
 
 /*!
