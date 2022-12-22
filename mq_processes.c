@@ -156,6 +156,7 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
 void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], int mq, pid_t worker_pid)
 
 
+
 /*!
  * @brief send_file_task_to_mq sends a file task to a worker. It operates similarly to @see send_task_to_mq
  * @param data_source the data source directory
@@ -165,33 +166,7 @@ void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], i
  * @param worker_pid the worker's PID
  */
 void send_file_task_to_mq(char data_source[], char temp_files[], char target_file[], int mq, pid_t worker_pid)
-{
-    if (data_source == NULL || temp_files == NULL || target_file == NULL)
-    {
-        return;
-    }
 
-    task_t task = {worker_pid, NULL, NULL};
-    task.argument = malloc(sizeof(task_argument_t));
-    if (task.argument == NULL)
-    {
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
-
-    task_argument_t *argument = (task_argument_t *)task.argument;
-    argument->data_source = data_source;
-    argument->temp_files = temp_files;
-    argument->target_file = target_file;
-
-    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
-    {
-        perror("msgsnd");
-        exit(EXIT_FAILURE);
-    }
-
-    free(task.argument);
-}
 
 /*!
  * @brief mq_process_directory root function for parallelizing directory analysis over workers. Must keep track of the
@@ -203,52 +178,7 @@ void send_file_task_to_mq(char data_source[], char temp_files[], char target_fil
  */
 void mq_process_directory(configuration_t *config, int mq, pid_t children[])
 {
-    if (config == NULL || children == NULL)
-    {
-        return;
-    }
-
-    int running_workers = config->process_count;
-    int tasks_count = 0;
-    int tasks_left = 0;
-    char **tasks = NULL;
-
-    tasks = get_subdirectories(config->data_source, &tasks_count);
-    tasks_left = tasks_count;
-    for (int i = 0; i < config->process_count; i++)
-    {
-        if (tasks_left > 0)
-        {
-            send_task_to_mq(config->data_source, config->temp_files, tasks[i], mq, children[i]);
-            tasks_left--;
-        }
-    }
-
-    while (tasks_left > 0 || running_workers > 0)
-    {
-        task_t task = {0, NULL, NULL};
-        if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), 0, 0) == -1)
-        {
-            perror("msgrcv");
-            exit(EXIT_FAILURE);
-        }
-
-        if (tasks_left > 0)
-        {
-            send_task_to_mq(config->data_source, config->temp_files, tasks[tasks_count - tasks_left], mq, task.topic);
-            tasks_left--;
-        }
-        else
-        {
-            running_workers--;
-        }
-    }
-
-    for (int i = 0; i < tasks_count; i++)
-    {
-        free(tasks[i]);
-    }
-    free(tasks);
+    
 }
 
 /*!
@@ -260,51 +190,5 @@ void mq_process_directory(configuration_t *config, int mq, pid_t children[])
  */
 void mq_process_files(configuration_t *config, int mq, pid_t children[])
 {
-    if (config == NULL || children == NULL)
-    {
-        return;
-    }
 
-    int running_workers = config->process_count;
-    int tasks_count = 0;
-    int tasks_left = 0;
-    char **tasks = NULL;
-
-    tasks = get_files(config->data_source, &tasks_count);
-    tasks_left = tasks_count;
-    for (int i = 0; i < config->process_count; i++)
-    {
-        if (tasks_left > 0)
-        {
-            send_file_task_to_mq(config->data_source, config->temp_files, tasks[i], mq, children[i]);
-            tasks_left--;
-        }
-    }
-
-    while (tasks_left > 0 || running_workers > 0)
-    {
-        task_t task = {0, NULL, NULL};
-        if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), 0, 0) == -1)
-        {
-            perror("msgrcv");
-            exit(EXIT_FAILURE);
-        }
-
-        if (tasks_left > 0)
-        {
-            send_file_task_to_mq(config->data_source, config->temp_files, tasks[tasks_count - tasks_left], mq, task.topic);
-            tasks_left--;
-        }
-        else
-        {
-            running_workers--;
-        }
-    }
-
-    for (int i = 0; i < tasks_count; i++)
-    {
-        free(tasks[i]);
-    }
-
-    free(tasks);
 }
