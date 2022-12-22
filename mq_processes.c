@@ -125,7 +125,7 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
 
     for (int i = 0; i < config->process_count; i++)
     {
-        task_t task = {children[i], NULL, NULL};
+        task_t task = {NULL, ""};
         if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
         {
             perror("msgsnd");
@@ -154,8 +154,9 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
  * @param worker_pid the worker PID
  */
 void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], int mq, pid_t worker_pid)
+{
 
-
+}
 
 /*!
  * @brief send_file_task_to_mq sends a file task to a worker. It operates similarly to @see send_task_to_mq
@@ -166,6 +167,9 @@ void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], i
  * @param worker_pid the worker's PID
  */
 void send_file_task_to_mq(char data_source[], char temp_files[], char target_file[], int mq, pid_t worker_pid)
+{
+    
+}
 
 
 /*!
@@ -178,7 +182,7 @@ void send_file_task_to_mq(char data_source[], char temp_files[], char target_fil
  */
 void mq_process_directory(configuration_t *config, int mq, pid_t children[])
 {
-    
+
 }
 
 /*!
@@ -190,5 +194,5 @@ void mq_process_directory(configuration_t *config, int mq, pid_t children[])
  */
 void mq_process_files(configuration_t *config, int mq, pid_t children[])
 {
-
+    
 }
