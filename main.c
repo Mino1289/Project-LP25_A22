@@ -45,7 +45,8 @@
 #endif
 #endif
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     configuration_t config = {
             .data_path = "",
             .temporary_directory = "",
@@ -53,6 +54,7 @@ int main(int argc, char *argv[]) {
             .is_verbose = false,
             .cpu_core_multiplier = 2,
     };
+    
     make_configuration(&config, argv, argc);
     if (!is_configuration_valid(&config)) {
         printf("Incorrect configuration\n");
@@ -61,6 +63,7 @@ int main(int argc, char *argv[]) {
         printf("\nExiting\n");
         return -1;
     }
+
     config.process_count = 1; // get_nprocs() * config.cpu_core_multiplier;
     printf("Running analysis on configuration:\n");
     display_configuration(&config);
