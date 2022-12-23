@@ -155,7 +155,7 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
  */
 void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], int mq, pid_t worker_pid)
 {
-
+    
 }
 
 /*!
@@ -194,5 +194,5 @@ void mq_process_directory(configuration_t *config, int mq, pid_t children[])
  */
 void mq_process_files(configuration_t *config, int mq, pid_t children[])
 {
-    
+
 }
