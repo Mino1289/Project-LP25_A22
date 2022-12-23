@@ -119,28 +119,7 @@ pid_t *mq_make_processes(configuration_t *config, int mq)
  */
 void close_processes(configuration_t *config, int mq, pid_t children[])
 {
-    if (config == NULL || children == NULL)
-    {
-        return;
-    }
 
-    for (int i = 0; i < config->process_count; i++)
-    {
-        task_t task;
-        task.task_callback = NULL;
-        printf("Sending termination signal to worker %d (PID %d)", i, children[i]);
-        if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
-        {
-            perror("msgsnd");
-            exit(EXIT_FAILURE);
-        }
-    }
-
-    for (int i = 0; i < config->process_count; i++)
-    {
-        waitpid(children[i], NULL, 0);
-    }
-    
 }
 
 /*!
