@@ -10,8 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
-#include <bits/types/sig_atomic_t.h>
+#include <signal.h>
 #include <stdio.h>
+#include <sys/wait.h>
 
 #include "utility.h"
 #include "analysis.h"
@@ -20,27 +21,53 @@
  * @brief make_message_queue creates the message queue used for communications between parent and worker processes
  * @return the file descriptor of the message queue
  */
-int make_message_queue() {
-    return -1;
+
+int make_message_queue()
+{
+    int mq = msgget(IPC_PRIVATE, 0600);
+    if (mq == -1)
+    {
+        perror("msgget");
+        exit(EXIT_FAILURE);
+    }
+    return mq;
 }
 
 /*!
  * @brief close_message_queue closes a message queue
  * @param mq the descriptor of the MQ to close
  */
-void close_message_queue(int mq) {
+void close_message_queue(int mq)
+{
+    if (msgctl(mq, IPC_RMID, NULL) == -1)
+    {
+        perror("msgctl");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /*!
  * @brief child_process is the function handling code for a child
  * @param mq message queue descriptor used to communicate with the parent
  */
-void child_process(int mq) {
-    // 1. Endless loop (interrupted by a task whose callback is NULL)
-    // 2. Upon reception of a task: check is not NULL
-    // 2 bis. If not NULL -> execute it and notify parent
-    // 2 ter. If NULL -> leave loop
-    // 3. Cleanup
+void child_process(int mq)
+{
+    task_t task;
+    while (1)
+    {
+        if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), getpid(), 0) == -1)
+        {
+            perror("msgrcv");
+            exit(EXIT_FAILURE);
+        }
+
+        if (task.task_callback == NULL)
+        {
+            break;
+        }
+
+        task.task_callback(&task);
+    }
 }
 
 /*!
@@ -49,8 +76,39 @@ void child_process(int mq) {
  * @param mq the identifier of the message queue used to communicate between parent and children (workers)
  * @return a malloc'ed array with all children PIDs
  */
-pid_t *mq_make_processes(configuration_t *config, int mq) {
-    return NULL;
+pid_t *mq_make_processes(configuration_t *config, int mq)
+{
+    if (config == NULL)
+    {
+        return NULL;
+    }
+
+    pid_t *children = malloc(config->process_count * sizeof(pid_t));
+    if (children == NULL)
+    {
+        perror("malloc");
+        exit(EXIT_FAILURE);
+    }
+
+    for (int i = 0; i < config->process_count; i++)
+    {
+        pid_t pid = fork();
+        if (pid == -1)
+        {
+            perror("fork");
+            exit(EXIT_FAILURE);
+        }
+        else if (pid == 0)
+        {
+            child_process(mq);
+        }
+        else
+        {
+            children[i] = pid;
+        }
+    }
+
+    return children;
 }
 
 /*!
@@ -59,7 +117,9 @@ pid_t *mq_make_processes(configuration_t *config, int mq) {
  * @param mq the message queue to communicate with the workers
  * @param children the array of children's PIDs
  */
-void close_processes(configuration_t *config, int mq, pid_t children[]) {
+void close_processes(configuration_t *config, int mq, pid_t children[])
+{
+
 }
 
 /*!
@@ -72,7 +132,9 @@ void close_processes(configuration_t *config, int mq, pid_t children[]) {
  * @param mq the MQ descriptor
  * @param worker_pid the worker PID
  */
-void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], int mq, pid_t worker_pid) {
+void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], int mq, pid_t worker_pid)
+{
+    
 }
 
 /*!
@@ -83,8 +145,11 @@ void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], i
  * @param mq the MQ descriptor
  * @param worker_pid the worker's PID
  */
-void send_file_task_to_mq(char data_source[], char temp_files[], char target_file[], int mq, pid_t worker_pid) {
+void send_file_task_to_mq(char data_source[], char temp_files[], char target_file[], int mq, pid_t worker_pid)
+{
+    
 }
+
 
 /*!
  * @brief mq_process_directory root function for parallelizing directory analysis over workers. Must keep track of the
@@ -94,12 +159,9 @@ void send_file_task_to_mq(char data_source[], char temp_files[], char target_fil
  * @param mq the MQ descriptor
  * @param children the children's PIDs used as MQ topics number
  */
-void mq_process_directory(configuration_t *config, int mq, pid_t children[]) {
-    // 1. Check parameters
-    // 2. Iterate over children and provide one directory to each
-    // 3. Loop while there are directories to process, and while all workers are processing
-    // 3 bis. For each worker finishing its task: send a new one if any task is left, keep track of running workers else
-    // 4. Cleanup
+void mq_process_directory(configuration_t *config, int mq, pid_t children[])
+{
+
 }
 
 /*!
@@ -109,10 +171,7 @@ void mq_process_directory(configuration_t *config, int mq, pid_t children[]) {
  * @param mq the MQ descriptor
  * @param children the children's PIDs used as MQ topics number
  */
-void mq_process_files(configuration_t *config, int mq, pid_t children[]) {
-    // 1. Check parameters
-    // 2. Iterate over children and provide one file to each
-    // 3. Loop while there are files to process, and while all workers are processing
-    // 3 bis. For each worker finishing its task: send a new one if any task is left, keep track of running workers else
-    // 4. Cleanup
+void mq_process_files(configuration_t *config, int mq, pid_t children[])
+{
+
 }

@@ -2,7 +2,12 @@
 *.exe
 *.dll
 *.so
+
+*.tar.gz
+maildir*
 /build
 main
 
+.vscode
 *.tgz
+*.cfg

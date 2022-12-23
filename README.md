@@ -22,6 +22,8 @@ Le reste de ce README définit plus en détails les éléments permettant d'acco
 
 Vous utiliserez comme source de données un corpus de 517401 e-mails de la société Enron. L'analyse des mails portera sur la fréquence des échanges de mails entre personnels. Pour cela, vous analyserez les entêtes de mails, notamment les champs **From**, **To**, **Cc** et **Bcc**.
 
+Ce corpus de données est disponible à [l'URL suivante](https://www.cs.cmu.edu/~./enron/enron_mail_20150507.tar.gz)
+
 Les données qui vous sont fournies le sont dans une arborescence comme suit :
 ```bash
 maildir
@@ -396,7 +398,7 @@ Attention : le code doit compiler sous Linux ! Un code non compatible avec un sy
 Les dates prévisionnelles des rendus sont les suivantes :
 
 - Soutenances pendant les TP de la semaine de rentrée
-- Rapport à envoyer avant le vendredi 25/12/2022, 23:59:59 GMT+1 (pénalité sur la note du rapport de 2^n-1 points pour n jours de retard)
+- Rapport à envoyer avant le vendredi 06/01/2023, 23:59:59 GMT+1 (pénalité sur la note du rapport de 2^n-1 points pour n jours de retard)
 - Code : 2 dates de rendu
 	- 1 préversion avant les vacances (vendredi 16/12/2022, à 23:59:59 GMT+1)
 	- 1 version finale après les soutenances (vendredi 06/01/2023, à 23:59:59 GMT+1)

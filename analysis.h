@@ -8,9 +8,9 @@
 #include "global_defs.h"
 #include <stdio.h>
 
-typedef struct _s_recipient {
+typedef struct _simple_recipient {
     char email[STR_MAX_LEN];
-    struct _s_recipient *next;
+    struct _simple_recipient *next;
 } simple_recipient_t;
 
 typedef struct {
