@@ -5,7 +5,7 @@
 #include "fifo_processes.h"
 
 #include "global_defs.h"
-#include <malloc.h>
+// #include <malloc.h>
 #include <sys/stat.h>
 #include <signal.h>
 #include <stdlib.h>

@@ -135,7 +135,7 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
 
     for (int i = 0; i < config->process_count; i++)
     {
-        if (waitpid(children[i], NULL, 0) == -1)
+        if (waitpid(children[i], NULL, 0) == 0)
         {
             perror("waitpid");
             exit(EXIT_FAILURE);
