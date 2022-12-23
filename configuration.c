@@ -178,7 +178,8 @@ void display_configuration(configuration_t *configuration) {
  * @param configuration the configuration to be tested
  * @return true if configuration is valid, false else
  */
-bool is_configuration_valid(configuration_t *configuration) {
+bool is_configuration_valid(configuration_t *configuration)
+{    
     if (directory_exists(configuration->data_path) && 
         directory_exists(configuration->temporary_directory) && 
         path_to_file_exists(configuration->output_file) && 
