@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <signal.h>
 #include <stdio.h>
+#include <sys/wait.h>
 
 #include "utility.h"
 #include "analysis.h"
@@ -125,7 +126,9 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
 
     for (int i = 0; i < config->process_count; i++)
     {
-        task_t task = {NULL, ""};
+        task_t task;
+        task.task_callback = NULL;
+        printf("Sending termination signal to worker %d (PID %d)", i, children[i]);
         if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
         {
             perror("msgsnd");
@@ -135,16 +138,9 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
 
     for (int i = 0; i < config->process_count; i++)
     {
-        if (waitpid(children[i], NULL, 0) == 0)
-        {
-            perror("waitpid");
-            exit(EXIT_FAILURE);
-        }
+        waitpid(children[i], NULL, 0);
     }
-
-    free(children);
-    close_message_queue(mq);
-    exit(EXIT_SUCCESS);
+    
 }
 
 /*!

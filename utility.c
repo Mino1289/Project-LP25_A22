@@ -45,7 +45,8 @@ char *concat_path(char *prefix, char *suffix, char *full_path) {
  * @param path the path whose existence to test
  * @return true if directory exists, false else
  */
-bool directory_exists(char *path) {
+bool directory_exists(char *path)
+{
     if (!path) return false;
     DIR *dir = opendir(path);
     if (dir) {
@@ -55,6 +56,7 @@ bool directory_exists(char *path) {
         closedir(dir);
         return false;
     }
+    
 }
 
 /*!

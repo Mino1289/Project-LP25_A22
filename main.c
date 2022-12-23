@@ -48,16 +48,15 @@
 int main(int argc, char *argv[])
 {
     configuration_t config = {
-            .data_path = "",
-            .temporary_directory = "",
-            .output_file = "",
+            .data_path = "test_config",
+            .temporary_directory = "test_config",
+            .output_file = "test_config",
             .is_verbose = false,
             .cpu_core_multiplier = 2,
     };
     
     make_configuration(&config, argv, argc);
     if (!is_configuration_valid(&config)) {
-        printf("Incorrect configuration\n");
         printf("\nUsage: %s -d <data_path> -t <temporary_directory> -o <output_file> [-v] [-n <cpu_core_multiplier>] -f <config-file>\n", argv[0]);
         display_configuration(&config);
         printf("\nExiting\n");
@@ -72,7 +71,6 @@ int main(int argc, char *argv[])
     // Running the analysis, based on defined method:
 
 #ifdef METHOD_MQ
-    printf("Test");
     // Initialization
     int mq = make_message_queue();
     if (mq == -1) {
@@ -83,6 +81,7 @@ int main(int argc, char *argv[])
 
     // Execution
     mq_process_directory(&config, mq, my_children);
+
     sync_temporary_files(config.temporary_directory);
     char temp_result_name[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step1_output", temp_result_name);
@@ -92,11 +91,12 @@ int main(int argc, char *argv[])
     char step2_file[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step2_output", step2_file);
     files_reducer(step2_file, config.output_file);
-
+    
     // Clean
     close_processes(&config, mq, my_children);
     free(my_children);
     close_message_queue(mq);
+
 #endif
 
 #ifdef METHOD_FIFO
