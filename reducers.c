@@ -170,6 +170,7 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
         }
 
         while(fgets(buffer,sizeof(buffer),temp_file) != NULL){
+            buffer[strlen(buffer)-1] = '\0';
             fputs(buffer,output);
         }
         
@@ -193,5 +194,54 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
  * @param output_file final output file to be written by your function
  */
 void files_reducer(char* temp_file, char* output_file)
+
 {
+    FILE* temp_f = fopen(temp_file,"r");
+    char buffer_line[STR_MAX_LEN];
+    
+    if(!temp_f){
+        perror("Cannot open temp_file");
+    }
+
+    sender_t* temp_linked_list = NULL;
+    while((fgets(buffer_line,sizeof(buffer_line),temp_f))!= NULL){
+        
+        buffer_line[strlen(buffer_line)-1] = '\0';
+        char* piece = strtok(buffer_line," ");
+        char sender[]= " ";
+        strcpy(sender,piece);
+        temp_linked_list = add_source_to_list(temp_linked_list,sender);
+        while(piece = strtok(NULL," ")){
+            add_recipient_to_source(find_source_in_list(temp_linked_list,sender),piece);
+        }
+    }
+    fclose(temp_f);
+
+    FILE* output = fopen(output_file,"w");
+
+    if(!output){
+        perror("Cannot open output_file");
+    }
+    
+    sender_t* temp_sender = temp_linked_list;
+    recipient_t* temp_recipient;
+
+    while(temp_sender!=NULL){
+        temp_recipient = temp_sender->head;
+        char dest_line[STR_MAX_LEN];
+        sprintf(dest_line,"%s ",temp_sender->sender_address);
+        
+        while (temp_recipient != NULL){
+            char dest_recipient[STR_MAX_LEN];
+            sprintf(dest_recipient,"%d:%s ",temp_recipient->occurrences,temp_recipient->recipient_address);
+            strcat(dest_line,dest_recipient);
+            temp_recipient= temp_recipient->next;
+        }
+        
+        fputs(dest_line,output);
+        fputs("\n",output);
+        temp_sender=temp_sender->next;
+    }
+    fclose(output);
+    clear_sources_list(temp_linked_list);
 }
