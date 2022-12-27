@@ -40,13 +40,13 @@ $(OBJECTS): $(BUILDDIR)/%.o : $(SOURCEDIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 ci: all
-	$(CC) $(CFLAGS) $(INCLUDEDIR) $(LIBSDIR) $(OBJECTS) -o $(EXECUTABLE) -lm
+	$(CC) $(CFLAGS) $(INCLUDEDIR) $(LIBSDIR) $(OBJECTS) -o $(EXECUTABLE:=.exe) -lm
 
 test: ci
-	valgrind --track-origins=yes ./$(EXECUTABLE)
+	valgrind --track-origins=yes ./$(EXECUTABLE:=.exe)
 
 binpack: all
-	tar -czf binpack-$(LIBCORENAME).tgz $(LIBTARGET) main
+	tar -czf binpack-$(LIBCORENAME).tgz $(LIBTARGET) $(EXECUTABLE)
 
 clean:
-	@rm -rf $(BUILDDIR) *.so main *.tgz
+	@rm -rf $(BUILDDIR) *.so main *.tgz *.exe

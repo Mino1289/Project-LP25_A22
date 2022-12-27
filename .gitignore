@@ -4,13 +4,9 @@
 *.so
 
 *.tar.gz
-maildir
+maildir*
 /build
 main
 
 .vscode
-=======
-/build
-main
-
-
+*.tgz

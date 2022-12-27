@@ -38,6 +38,10 @@
 #endif
 
 int main(int argc, char *argv[]) {
+
+    FILE *f = fopen("test_output", "w");
+    parse_dir("maildir copy", f);
+
     configuration_t config = {
             .data_path = "",
             .temporary_directory = "",
@@ -47,7 +51,8 @@ int main(int argc, char *argv[]) {
     };
     make_configuration(&config, argv, argc);
     if (!is_configuration_valid(&config)) {
-        printf("Incorrect configuration:\n");
+        printf("Incorrect configuration\n");
+        printf("\nUsage: %s -d <data_path> -t <temporary_directory> -o <output_file> [-v] [-n <cpu_core_multiplier>] -f <config-file>\n", argv[0]);
         display_configuration(&config);
         printf("\nExiting\n");
         return -1;
