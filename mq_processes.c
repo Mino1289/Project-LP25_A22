@@ -160,7 +160,14 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
  */
 void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], int mq, pid_t worker_pid)
 {
-    
+    task_t task;
+    task.task_callback = &process_directory;
+
+    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
+    {
+        perror("msgsnd");
+        exit(EXIT_FAILURE);
+    }   
 }
 
 /*!
