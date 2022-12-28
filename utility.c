@@ -67,11 +67,22 @@ bool directory_exists(char *path)
  * @return true if path to file exists, false else
  */
 bool path_to_file_exists(char *path) {
-    char* path_to_file = (char *) malloc(sizeof(char) * STR_MAX_LEN);
-    path_to_file = realpath(path, path_to_file);
-    bool exists = directory_exists(path_to_file);
-    free(path_to_file);
-    return exists;
+    char path_copy[STR_MAX_LEN];
+    strcpy(path_copy, path);
+    char *dir_path = dirname(path_copy);
+    bool exists = directory_exists(dir_path);
+    if (exists) {
+        // open file to check if it exists
+        FILE* f = fopen(path, "r");
+        if (f) {
+            fclose(f);
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
 }
 
 /*!
