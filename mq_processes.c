@@ -124,13 +124,11 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
         return;
     }
 
+    task_t task;
+    task.task_callback = NULL;
+
     for (int i = 0; i < config->process_count; i++)
     {
-        task_t task;
-        task.task_callback = NULL;
-        char buffer[10];
-        sprintf(buffer, "%d", children[i]);
-        strcpy(task.argument, buffer);
         if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
         {
             perror("msgsnd");
@@ -140,8 +138,14 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
 
     for (int i = 0; i < config->process_count; i++)
     {
-        waitpid(children[i], NULL, 0);
+        if (waitpid(children[i], NULL, 0) == -1)
+        {
+            perror("waitpid");
+            exit(EXIT_FAILURE);
+        }
     }
+
+    free(children);
 }
 
 /*!
