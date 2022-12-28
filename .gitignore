@@ -9,6 +9,7 @@ maildir*
 /maildir
 /tmp_dir
 main
+config
 
 .vscode
 *.tgz
