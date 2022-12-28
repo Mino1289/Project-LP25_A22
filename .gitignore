@@ -6,7 +6,11 @@
 *.tar.gz
 maildir*
 /build
+/maildir
+/tmp_dir
 main
 
 .vscode
 *.tgz
+
+.DS_Store

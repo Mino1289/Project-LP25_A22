@@ -17,8 +17,8 @@
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
-// #include <sys/sysctl.h>
-#include <sys/sysinfo.h>
+#include <sys/sysctl.h>
+// #include <sys/sysinfo.h>
 
 #include <dirent.h>
 
@@ -30,7 +30,7 @@
 #elif (defined(FIFO))
 #define METHOD_FIFO
 #else
-#error "No method defined, please define one of the following: MQ, DIRECT, FIFO (compile with MQ=1, DIRECT=1 or FIFO=1)"
+// #error "No method defined, please define one of the following: MQ, DIRECT, FIFO (compile with MQ=1, DIRECT=1 or FIFO=1)"
 #endif
 
 #ifdef METHOD_MQ
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    config.process_count = get_nprocs() * config.cpu_core_multiplier;
+    config.process_count = 2; //get_nprocs() * config.cpu_core_multiplier;
     printf("Running analysis on configuration:\n");
     display_configuration(&config);
     printf("\nPlease wait, it can take a while\n\n");
