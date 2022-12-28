@@ -138,9 +138,7 @@ void parse_file(char *filepath, char *output) {
 
     // 2. Go through e-mail and extract From: address into a buffer
     while ((buffer = fgets(buffer,STR_MAX_LEN, file)) && !strstr(buffer, "From:"));
-    if (!buffer) {
-        return;
-    }
+    if (!buffer) return;
     extract_e_mail(buffer, sender);
     read_status = IN_DEST_FIELD;
 
@@ -186,7 +184,16 @@ void process_directory(task_t *task) {
     // 2. Go through dir tree and find all regular files
     // 3. Write all file names into output file
     // 4. Clear all allocated resources
+    if (!task) return;
+    directory_task_t *directory_task = (directory_task_t *) task;
 
+    if (!directory_exists(directory_task->object_directory)) return;
+
+    FILE *output_file = fopen(directory_task->temporary_directory, "a");
+    if (!output_file) return;
+
+    parse_dir(directory_task->object_directory, output_file);
+    fclose(output_file);
 }
 
 /*!
