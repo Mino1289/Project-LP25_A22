@@ -68,12 +68,12 @@ int main(int argc, char *argv[]) {
     config.process_count = get_nprocs() * config.cpu_core_multiplier;
     printf("Running analysis on configuration:\n");
     display_configuration(&config);
-    printf("\nPlease wait, it can take a while\n\n");
+    print_msg(config, "\nPlease wait, it can take a while\n\n");
 
     // Running the analysis, based on defined method:
 
 #ifdef METHOD_MQ
-    printf("Running analysis using message queues\n");
+    print_msg(config, "Running analysis using message queues\n");
     // Initialization
     int mq = make_message_queue();
     if (mq == -1) {
@@ -103,6 +103,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef METHOD_FIFO
+    print_msg(config, "Running analysis using FIFOs\n");
     make_fifos(config.process_count, "fifo-in-%d");
     make_fifos(config.process_count, "fifo-out-%d");
     pid_t *children = make_processes(config.process_count);
@@ -126,17 +127,32 @@ int main(int argc, char *argv[]) {
 #endif
 
 #ifdef METHOD_DIRECT
+    print_msg(config, "Running analysis using direct fork\n");
+    
+    print_msg(config, "Forking directories\n");
     direct_fork_directories(config.data_path, config.temporary_directory, config.process_count);
+    
+    print_msg(config, "Syncing temporary files\n");
     sync_temporary_files(config.temporary_directory);
     char direct_temp_result_name[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step1_output", direct_temp_result_name);
+    
+    print_msg(config, "Reducing files list\n");
     files_list_reducer(config.data_path, config.temporary_directory, direct_temp_result_name);
+    
+    print_msg(config, "Forking files\n");
     direct_fork_files(config.data_path, config.temporary_directory, config.process_count);
+   
+    print_msg(config, "Syncing temporary files\n");
     sync_temporary_files(config.temporary_directory);
     char direct_step2_file[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step2_output", direct_step2_file);
+    
+    print_msg(config, "Reducing files\n");
     files_reducer(direct_step2_file, config.output_file);
+    
 #endif
 
+    print_msg(config, "Analysis finished\n");
     return 0;
 }

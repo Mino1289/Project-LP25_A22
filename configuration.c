@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 #include "utility.h"
 
@@ -189,5 +190,20 @@ bool is_configuration_valid(configuration_t *configuration)
         return true;
     } else {
         return false;
+    }
+}
+
+/*!
+ * @brief print_msg prints a message to stdout, if verbose mode is on
+ * @param config the configuration to check for verbose mode
+ * @param format the format string
+ * @param ... the arguments to the format string
+ */
+void print_msg(configuration_t config, char* format, ...) {
+    if (config.is_verbose) {
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
     }
 }
