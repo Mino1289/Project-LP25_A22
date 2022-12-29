@@ -18,7 +18,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 // #include <sys/sysctl.h>
-// #include <sys/sysctl.h>
 #include <sys/sysinfo.h>
 
 
