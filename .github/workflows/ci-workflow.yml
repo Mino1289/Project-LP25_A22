@@ -10,14 +10,15 @@ jobs:
     steps:
       - run: sudo apt-get install valgrind
       - uses: actions/checkout@v3
-      - run: make -j2 DEBUG=1
+      - run: make -j2 DEBUG=1 DIRECT=1
       - run: make test
-      - run: make binpack
-      
-      - uses: actions/upload-artifact@master
-        with:
-          name: binpack-mappeReducer.tgz
-          path: binpack-mappeReducer.tgz
+      - run: make clean
+      - run: make -j2 DEBUG=1 MQ=1
+      - run: make test
+      - run: make clean
+      - run: make -j2 DEBUG=1 FIFO=1
+      - run: make test
+      - run: make clean
 
 env:
   ACCEPT_OFFICIAL_TOS: 1

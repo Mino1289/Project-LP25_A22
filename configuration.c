@@ -33,44 +33,36 @@ configuration_t *make_configuration(configuration_t *base_configuration, char *a
     };
     int opt;
 
-    configuration_t *configuration = (configuration_t *) malloc(sizeof(configuration_t));
-    memcpy(configuration, base_configuration, sizeof(configuration_t));
-
     while ((opt = getopt_long(argc, argv, "vd:t:o:n:f:", my_opts, NULL)) != EOF) {
         switch (opt) {
             case 'v':
-                configuration->is_verbose = true;
+                base_configuration->is_verbose = true;
                 break;
             
             case 'd':
-                strncpy(configuration->data_path, optarg, STR_MAX_LEN);
+                strncpy(base_configuration->data_path, optarg, STR_MAX_LEN);
                 break;
 
             case 't':
-                strncpy(configuration->temporary_directory, optarg, STR_MAX_LEN);
+                strncpy(base_configuration->temporary_directory, optarg, STR_MAX_LEN);
                 break;
             
             case 'o':
-                strncpy(configuration->output_file, optarg, STR_MAX_LEN);
+                strncpy(base_configuration->output_file, optarg, STR_MAX_LEN);
                 break;
 
             case 'c':
-                configuration->cpu_core_multiplier = atoi(optarg);
+                base_configuration->cpu_core_multiplier = atoi(optarg);
                 break;
             case 'f':
-                configuration = read_cfg_file(configuration, optarg);
-                return configuration;
+                base_configuration = read_cfg_file(base_configuration, optarg);
+                return base_configuration;
                 break;
             default:
                 break;
         }
     }
-    if (is_configuration_valid(configuration)) {
-        return configuration;
-    } else {
-        free(configuration);
-        return base_configuration;
-    }
+    return base_configuration;
 }
 
 /*!
@@ -157,7 +149,6 @@ configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_t
             } else {
                 base_configuration->is_verbose = false;
             }
-            base_configuration->is_verbose = true;
         } else {
             printf("Unknown key: %s\n", key);
         }
@@ -187,7 +178,8 @@ void display_configuration(configuration_t *configuration) {
  * @param configuration the configuration to be tested
  * @return true if configuration is valid, false else
  */
-bool is_configuration_valid(configuration_t *configuration) {
+bool is_configuration_valid(configuration_t *configuration)
+{    
     if (directory_exists(configuration->data_path) && 
         directory_exists(configuration->temporary_directory) && 
         path_to_file_exists(configuration->output_file) && 

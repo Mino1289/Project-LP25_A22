@@ -17,13 +17,21 @@
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
+// #include <sys/sysctl.h>
 #include <sys/sysinfo.h>
+
 #include <dirent.h>
 
 // Choose a method below by uncommenting ONLY one of the following 3 lines:
+#if (defined(MQ))
 #define METHOD_MQ
-//#define METHOD_DIRECT
-//#define METHOD_FIFO
+#elif (defined(DIRECT))
+#define METHOD_DIRECT
+#elif (defined(FIFO))
+#define METHOD_FIFO
+#else
+#error "No method defined, please define one of the following: MQ, DIRECT, FIFO (compile with MQ=1, DIRECT=1 or FIFO=1)"
+#endif
 
 #ifdef METHOD_MQ
 #if (defined(METHOD_DIRECT) || defined(METHOD_FIFO))
@@ -46,14 +54,15 @@ int main(int argc, char *argv[]) {
             .is_verbose = false,
             .cpu_core_multiplier = 2,
     };
+    
     make_configuration(&config, argv, argc);
     if (!is_configuration_valid(&config)) {
-        printf("Incorrect configuration\n");
         printf("\nUsage: %s -d <data_path> -t <temporary_directory> -o <output_file> [-v] [-n <cpu_core_multiplier>] -f <config-file>\n", argv[0]);
         display_configuration(&config);
         printf("\nExiting\n");
         return -1;
     }
+
     config.process_count = get_nprocs() * config.cpu_core_multiplier;
     printf("Running analysis on configuration:\n");
     display_configuration(&config);
@@ -72,6 +81,7 @@ int main(int argc, char *argv[]) {
 
     // Execution
     mq_process_directory(&config, mq, my_children);
+
     sync_temporary_files(config.temporary_directory);
     char temp_result_name[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step1_output", temp_result_name);
@@ -81,11 +91,12 @@ int main(int argc, char *argv[]) {
     char step2_file[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step2_output", step2_file);
     files_reducer(step2_file, config.output_file);
-
+    
     // Clean
     close_processes(&config, mq, my_children);
     free(my_children);
     close_message_queue(mq);
+
 #endif
 
 #ifdef METHOD_FIFO

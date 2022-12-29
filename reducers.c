@@ -6,8 +6,10 @@
 
 #include <dirent.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #include "global_defs.h"
 #include "utility.h"
@@ -18,25 +20,66 @@
  * @param source_email the e-mail to add as a string
  * @return a pointer to the updated beginning of the list
  */
-sender_t *add_source_to_list(sender_t *list, char *source_email) {
-    return NULL;
+sender_t* add_source_to_list(sender_t* list, char* source_email){
+    sender_t* temp_sender = find_source_in_list(list, source_email);
+
+    if (temp_sender == NULL) {
+        sender_t* temp_sender = (sender_t*)malloc(sizeof(sender_t));
+        strncpy(temp_sender->sender_address, source_email, STR_MAX_LEN);
+
+        if (list != NULL) {
+            temp_sender->next = list;
+            list->prev = temp_sender;
+        } else {
+            temp_sender->next = NULL;
+            temp_sender->prev = NULL;
+        }
+
+        temp_sender->head = NULL;
+        temp_sender->tail = NULL;
+
+        return temp_sender;
+    } else {
+        return list;
+    }
 }
 
 /*!
  * @brief clear_sources_list clears the list of e-mail sources (therefore clearing the recipients of each source)
  * @param list a pointer to the list to clear
  */
-void clear_sources_list(sender_t *list) {
+void clear_sources_list(sender_t* list){
+    if (list == NULL) {
+        return;
+    } else {
+        clear_sources_list(list->next);
+        if (list->head != NULL) {
+            while (list->head->next != NULL) {
+                list->head = list->head->next;
+                free(list->head->prev);
+            }
+            free(list->head);
+        }
+        free(list);
+    }
 }
-
 /*!
  * @brief find_source_in_list looks for an e-mail address in the sources list and returns a pointer to it.
  * @param list the list to look into for the e-mail
  * @param source_email the e-mail as a string to look for
  * @return a pointer to the matching source, NULL if none exists
  */
-sender_t *find_source_in_list(sender_t *list, char *source_email) {
-    return NULL;
+sender_t* find_source_in_list(sender_t* list, char* source_email){
+    sender_t* temp = list;
+
+    while (temp != NULL && strcmp(temp->sender_address, source_email) != 0) {
+        temp = temp->next;
+    }
+    if (temp == NULL) {
+        return NULL;
+    } else {
+        return temp;
+    }
 }
 
 /*!
@@ -46,7 +89,33 @@ sender_t *find_source_in_list(sender_t *list, char *source_email) {
  * @param source a pointer to the source to add/update the recipient to
  * @param recipient_email the recipient e-mail to add/update as a string
  */
-void add_recipient_to_source(sender_t *source, char *recipient_email) {
+void add_recipient_to_source(sender_t* source, char* recipient_email){
+    if (source != NULL) {
+        recipient_t* temp = source->head;
+
+        while (temp != NULL && strcmp(temp->recipient_address, recipient_email) != 0) {
+            temp = temp->next;
+        }
+        if (temp != NULL) {
+            ++temp->occurrences;
+        } else {
+            recipient_t* new_recipient = (recipient_t*)malloc(sizeof(recipient_t));
+            strncpy(new_recipient->recipient_address, recipient_email, STR_MAX_LEN);
+            new_recipient->occurrences = 1;
+
+            if (source->head == NULL) {
+                source->head = new_recipient;
+                source->tail = new_recipient;
+                new_recipient->next = NULL;
+                new_recipient->prev = NULL;
+            } else {
+                new_recipient->next = source->head;
+                source->head->prev = new_recipient;
+                new_recipient->prev = NULL;
+                source->head = new_recipient;
+            }
+        }
+    }
 }
 
 /*!
@@ -56,7 +125,8 @@ void add_recipient_to_source(sender_t *source, char *recipient_email) {
  * @param temp_files the temporary files directory, where to read files to be concatenated
  * @param output_file path to the output file (default name is step1_output, but we'll keep it as a parameter).
  */
-void files_list_reducer(char *data_source, char *temp_files, char *output_file) {
+void files_list_reducer(char* data_source, char* temp_files, char* output_file)
+{
 }
 
 /*!
@@ -66,5 +136,6 @@ void files_list_reducer(char *data_source, char *temp_files, char *output_file) 
  * @param temp_file path to temp output file
  * @param output_file final output file to be written by your function
  */
-void files_reducer(char *temp_file, char *output_file) {
+void files_reducer(char* temp_file, char* output_file)
+{
 }

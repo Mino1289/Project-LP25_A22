@@ -10,3 +10,4 @@ main
 
 .vscode
 *.tgz
+*.cfg
