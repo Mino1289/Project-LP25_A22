@@ -13,5 +13,6 @@ config
 
 .vscode
 *.tgz
+*.cfg
 
 .DS_Store

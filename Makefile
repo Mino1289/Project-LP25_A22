@@ -43,10 +43,10 @@ run: all
 	./$(EXECUTABLE)
 
 $(EXECUTABLE): $(LIBTARGET)
-	$(CC) $(CFLAGS) $(INCLUDEDIR) $(LIBSDIR) -o $(EXECUTABLE) -l$(LIBCORENAME) -lm
+	$(CC) $(CFLAGS) $(INCLUDEDIR) $(LIBSDIR) $(BUILDDIR)/$(EXECUTABLE:=.o) -o $(EXECUTABLE) -l$(LIBCORENAME) -lm
 
 $(LIBTARGET) : $(OBJECTS)
-	$(CC) $(CFLAGS) -shared $(OBJECTS) -o $(LIBTARGET)
+	$(CC) $(CFLAGS) -shared $(filter-out $(BUILDDIR)/main.o,$(OBJECTS)) -o $(LIBTARGET)
 
 $(BUILDDIR)/$(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) -c -o $@ $<

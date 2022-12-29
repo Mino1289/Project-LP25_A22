@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <sys/wait.h>
+#include <sys/wait.h>
 
 #include "utility.h"
 #include "analysis.h"
@@ -53,6 +54,7 @@ void close_message_queue(int mq)
 void child_process(int mq)
 {
     task_t task;
+    task_t task;
     while (1)
     {
         if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), getpid(), 0) == -1)
@@ -62,9 +64,13 @@ void child_process(int mq)
         }
 
         if (task.task_callback == NULL)
+
+        if (task.task_callback == NULL)
         {
             break;
         }
+
+        task.task_callback(&task);
 
         task.task_callback(&task);
     }

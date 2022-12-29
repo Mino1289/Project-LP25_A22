@@ -18,7 +18,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 // #include <sys/sysctl.h>
+// #include <sys/sysctl.h>
 #include <sys/sysinfo.h>
+
 
 #include <dirent.h>
 
@@ -45,8 +47,8 @@
 #endif
 #endif
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+
     configuration_t config = {
             .data_path = "",
             .temporary_directory = "",
@@ -98,8 +100,6 @@ int main(int argc, char *argv[])
     close_processes(&config, mq, my_children);
     free(my_children);
     close_message_queue(mq);
-
-    printf("Analysis completed\n");
 
 #endif
 

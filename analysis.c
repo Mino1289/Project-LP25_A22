@@ -138,9 +138,7 @@ void parse_file(char *filepath, char *output) {
 
     // 2. Go through e-mail and extract From: address into a buffer
     while ((buffer = fgets(buffer,STR_MAX_LEN, file)) && !strstr(buffer, "From:"));
-    if (!buffer) {
-        return;
-    }
+    if (!buffer) return;
     extract_e_mail(buffer, sender);
     read_status = IN_DEST_FIELD;
 
@@ -186,7 +184,16 @@ void process_directory(task_t *task) {
     // 2. Go through dir tree and find all regular files
     // 3. Write all file names into output file
     // 4. Clear all allocated resources
+    if (!task) return;
+    directory_task_t *directory_task = (directory_task_t *) task;
 
+    if (!directory_exists(directory_task->object_directory)) return;
+
+    FILE *output_file = fopen(directory_task->temporary_directory, "a");
+    if (!output_file) return;
+
+    parse_dir(directory_task->object_directory, output_file);
+    fclose(output_file);
 }
 
 /*!
@@ -196,6 +203,20 @@ void process_directory(task_t *task) {
  */
 void process_file(task_t *task) {
     // 1. Check parameters
+    if (!task) return;
+    file_task_t *file_task = (file_task_t *) task;
+
+    if (!path_to_file_exists(file_task->object_file) || !path_to_file_exists(file_task->temporary_directory)) return;
     // 2. Build full path to all parameters
+    char *filepath = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+    filepath = realpath(file_task->object_file, filepath);
+
+    char *output = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+    output = realpath(file_task->temporary_directory, output);
+
     // 3. Call parse_file
+    parse_file(filepath, output);
+
+    free(filepath);
+    free(output);
 }
