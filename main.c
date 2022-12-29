@@ -45,8 +45,8 @@
 #endif
 #endif
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+
     configuration_t config = {
             .data_path = "",
             .temporary_directory = "",
