@@ -154,7 +154,7 @@ configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_t
             printf("Unknown key: %s\n", key);
         }
     }
-
+    fclose(cfg_file);
     return base_configuration;
 }
 
@@ -170,7 +170,6 @@ void display_configuration(configuration_t *configuration) {
     printf("\tVerbose mode is %s\n", configuration->is_verbose ? "on" : "off");
     printf("\tCPU multiplier is %d\n", configuration->cpu_core_multiplier);
     printf("\tProcess count is %d\n", configuration->process_count);
-    printf("End configuration\n");
 }
 
 /*!
