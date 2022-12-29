@@ -51,13 +51,15 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
                 if (pid == 0) {
                     // child process
                     char *output_file = concat_path(temp_files, entry->d_name, NULL);
-                    FILE *output = fopen(output_file, "w");
-                    if (output == NULL) {
-                        printf("Error: could not open output file.\n");
-                        exit(EXIT_FAILURE);
-                    }
-                    parse_dir(entry_path, output);
-                    fclose(output);
+
+                    directory_task_t *t = (directory_task_t *) malloc(sizeof(task_t));
+
+                    t->task_callback = process_directory;
+                    strncpy(t->object_directory, entry_path, STR_MAX_LEN);
+                    strncpy(t->temporary_directory, output_file, STR_MAX_LEN);
+
+                    t->task_callback((task_t*) t);
+
                     exit(EXIT_SUCCESS);
                 } else if (pid > 0) {
                     // parent process
@@ -116,7 +118,14 @@ void direct_fork_files(char *data_source, char *temp_files, uint16_t nb_proc) {
                 pid_t pid = fork();
                 if (pid == 0) {
                     // child process
-                    parse_file(entry_path, temp_files);
+
+                    file_task_t *t = (file_task_t *) malloc(sizeof(task_t));
+                    
+                    t->task_callback = process_file;
+                    strncpy(t->object_file, entry_path, STR_MAX_LEN);
+                    strncpy(t->temporary_directory, temp_files, STR_MAX_LEN);
+                    t->task_callback((task_t*) t);
+
                     exit(EXIT_SUCCESS);
                 } else if (pid > 0) {
                     // parent process
