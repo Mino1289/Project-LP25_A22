@@ -65,11 +65,13 @@ bool directory_exists(char *path) {
  * @return true if path to file exists, false else
  */
 bool path_to_file_exists(char *path) {
-    char* path_to_file = (char *) malloc(sizeof(char) * STR_MAX_LEN);
-    path_to_file = realpath(path, path_to_file);
+
+    /* char *path_to_file = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+    path_to_file = dirname(path);
     bool exists = directory_exists(path_to_file);
-    free(path_to_file);
-    return exists;
+    //free(path_to_file);
+    return exists; */
+    return true; //TODO:
 }
 
 /*!

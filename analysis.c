@@ -203,6 +203,20 @@ void process_directory(task_t *task) {
  */
 void process_file(task_t *task) {
     // 1. Check parameters
+    if (!task) return;
+    file_task_t *file_task = (file_task_t *) task;
+
+    if (!path_to_file_exists(file_task->object_file) || !path_to_file_exists(file_task->temporary_directory)) return;
     // 2. Build full path to all parameters
+    char *filepath = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+    filepath = realpath(file_task->object_file, filepath);
+
+    char *output = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+    output = realpath(file_task->temporary_directory, output);
+
     // 3. Call parse_file
+    parse_file(filepath, output);
+
+    free(filepath);
+    free(output);
 }
