@@ -127,6 +127,64 @@ void add_recipient_to_source(sender_t* source, char* recipient_email){
  */
 void files_list_reducer(char* data_source, char* temp_files, char* output_file)
 {
+   // Construct the full path to the output file
+    char output_path[STR_MAX_LEN];
+    snprintf(output_path, sizeof(output_path), "%s/%s", data_source, output_file);
+
+    // Open the output file for writing
+    FILE* output = fopen(output_path, "w");
+    if (!output) {
+        perror("Cannot open output_file");
+        return;
+    }
+
+    // Construct the full path to the temporary files directory
+    char temp_dir_path[STR_MAX_LEN];
+    snprintf(temp_dir_path, sizeof(temp_dir_path), "%s/%s", data_source, temp_files);
+
+    // Open the temporary files directory
+    DIR* temp_dir = opendir(temp_dir_path);
+    if (!temp_dir) {
+        perror("Cannot open directory");
+        return;
+    }
+
+    // Read the entries in the directory
+    char buffer[STR_MAX_LEN];
+    struct dirent* entry;
+    while ((entry = readdir(temp_dir)) != NULL) {
+        
+        // Skip the "." and ".." entries
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        // Construct the full path to the temporary file
+        char temp_file_path[2048];
+        snprintf(temp_file_path, sizeof(temp_file_path), "%s/%s", temp_dir_path, entry->d_name);
+
+        // Open the temporary file for reading
+        FILE* temp_file = fopen(temp_file_path, "r");
+        if (!temp_file) {
+            perror("Cannot open file");
+            continue;
+        }
+
+        while(fgets(buffer,sizeof(buffer),temp_file) != NULL){
+            buffer[strlen(buffer)-1] = '\0';
+            fputs(buffer,output);
+        }
+        
+        // Close the temporary file
+        fclose(temp_file);
+    }
+
+    // Close the output file and temporary files directory
+    fclose(output);
+    closedir(temp_dir);
+
+    //sync the system
+    sync();
 }
 
 /*!
@@ -138,4 +196,52 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
  */
 void files_reducer(char* temp_file, char* output_file)
 {
+    FILE* temp_f = fopen(temp_file,"r");
+    char buffer_line[STR_MAX_LEN];
+    
+    if(!temp_f){
+        perror("Cannot open temp_file");
+    }
+
+    sender_t* temp_linked_list = NULL;
+    while((fgets(buffer_line,sizeof(buffer_line),temp_f))!= NULL){
+        
+        buffer_line[strlen(buffer_line)-1] = '\0';
+        char* piece = strtok(buffer_line," ");
+        char sender[]= " ";
+        strcpy(sender,piece);
+        temp_linked_list = add_source_to_list(temp_linked_list,sender);
+        while(piece = strtok(NULL," ")){
+            add_recipient_to_source(find_source_in_list(temp_linked_list,sender),piece);
+        }
+    }
+    fclose(temp_f);
+
+    FILE* output = fopen(output_file,"w");
+
+    if(!output){
+        perror("Cannot open output_file");
+    }
+    
+    sender_t* temp_sender = temp_linked_list;
+    recipient_t* temp_recipient;
+
+    while(temp_sender!=NULL){
+        temp_recipient = temp_sender->head;
+        char dest_line[STR_MAX_LEN];
+        sprintf(dest_line,"%s ",temp_sender->sender_address);
+        
+        while (temp_recipient != NULL){
+            char dest_recipient[STR_MAX_LEN];
+            sprintf(dest_recipient,"%d:%s ",temp_recipient->occurrences,temp_recipient->recipient_address);
+            strcat(dest_line,dest_recipient);
+            temp_recipient= temp_recipient->next;
+        }
+        
+        fputs(dest_line,output);
+        fputs("\n",output);
+        temp_sender=temp_sender->next;
+    }
+    fclose(output);
+    clear_sources_list(temp_linked_list);
 }
