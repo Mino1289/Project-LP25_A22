@@ -6,6 +6,7 @@
 
 #include <dirent.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -194,7 +195,6 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
  * @param output_file final output file to be written by your function
  */
 void files_reducer(char* temp_file, char* output_file)
-
 {
     FILE* temp_f = fopen(temp_file,"r");
     char buffer_line[STR_MAX_LEN];
