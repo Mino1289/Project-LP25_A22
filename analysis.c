@@ -208,15 +208,12 @@ void process_file(task_t *task) {
 
     if (!path_to_file_exists(file_task->object_file) || !path_to_file_exists(file_task->temporary_directory)) return;
     // 2. Build full path to all parameters
-    char *filepath = (char *) malloc(sizeof(char) * STR_MAX_LEN);
-    filepath = realpath(file_task->object_file, filepath);
+    char filepath[STR_MAX_LEN];
+    realpath(file_task->object_file, filepath);
 
-    char *output = (char *) malloc(sizeof(char) * STR_MAX_LEN);
-    output = realpath(file_task->temporary_directory, output);
+    char output[STR_MAX_LEN];
+    realpath(file_task->temporary_directory, output);
 
     // 3. Call parse_file
     parse_file(filepath, output);
-
-    free(filepath);
-    free(output);
 }
