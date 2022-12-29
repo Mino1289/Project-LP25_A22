@@ -18,7 +18,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 // #include <sys/sysctl.h>
+// #include <sys/sysctl.h>
 #include <sys/sysinfo.h>
+
 
 #include <dirent.h>
 
@@ -56,6 +58,7 @@ int main(int argc, char *argv[]) {
     };
     
     make_configuration(&config, argv, argc);
+    
     if (!is_configuration_valid(&config)) {
         printf("\nUsage: %s -d <data_path> -t <temporary_directory> -o <output_file> [-v] [-n <cpu_core_multiplier>] -f <config-file>\n", argv[0]);
         display_configuration(&config);
@@ -71,6 +74,7 @@ int main(int argc, char *argv[]) {
     // Running the analysis, based on defined method:
 
 #ifdef METHOD_MQ
+    printf("Running analysis using message queues\n");
     // Initialization
     int mq = make_message_queue();
     if (mq == -1) {
