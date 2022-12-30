@@ -7,7 +7,7 @@
 maildir*
 /build
 /maildir
-/tmp_dir
+temp/*
 main
 config
 

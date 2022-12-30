@@ -17,8 +17,8 @@
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
-// #include <sys/sysctl.h>
 #include <sys/sysinfo.h>
+#include <sys/stat.h>
 
 
 #include <dirent.h>
@@ -70,6 +70,9 @@ int main(int argc, char *argv[]) {
     display_configuration(&config);
     print_msg(config, "\nPlease wait, it can take a while\n\n");
 
+    system("rm -rf temp/*");
+    FILE *f = fopen(config.output_file, "w");
+    fclose(f);
     // Running the analysis, based on defined method:
 
 #ifdef METHOD_MQ
