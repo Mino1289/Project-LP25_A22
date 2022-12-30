@@ -75,7 +75,7 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
                 }
             }
         }
-        entry = readdir(dir);
+        entry = next_dir(entry, dir);
     }
     for (int i = 0; i < current_proc; ++i) {
         wait(NULL);
@@ -101,9 +101,7 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
         printf("Error: %s does not exist.\n", temp_file);
         return;
     }
-    /*
     uint16_t current_proc = 0;
-    */
     // 2. Iterate over files in files list (step1_output)
     FILE* files_list = fopen(data_source, "r");
     if (files_list == NULL) {
@@ -114,18 +112,14 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
     while (fgets(file_path, STR_MAX_LEN, files_list) != NULL) {
         file_path[strlen(file_path) - 1] = '\0';
         if (path_to_file_exists(file_path)) {
-            /*
             if (current_proc > nb_proc) {
                 // 3 bis: if max processes count already run, wait for one to end before starting a task.
                 wait(NULL);
                 --current_proc;
             }
-            */
             // 3. fork and start a task on current file.
-            /*
             pid_t pid = fork();
             if (pid == 0) {
-                */
                 // child process
                 file_task_t *t = (file_task_t *) malloc(sizeof(task_t));
 
@@ -136,7 +130,7 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
                 t->task_callback((task_t*) t);
 
                 free(t);
-                /*
+                fclose(files_list);
                 exit(EXIT_SUCCESS);
             } else if (pid > 0) {
                 // parent process
@@ -146,16 +140,13 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
                 printf("Error: could not fork.\n");
                 exit(EXIT_FAILURE);
             }
-            */
         }
     }
 
     // 4. Cleanup
-    /*
     for (int i = 0; i < current_proc; ++i) {
         wait(NULL);
     }
-    */
     fclose(files_list);
     //TODO: Check for memory leaks
 }

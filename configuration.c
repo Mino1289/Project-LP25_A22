@@ -52,12 +52,11 @@ configuration_t *make_configuration(configuration_t *base_configuration, char *a
                 strncpy(base_configuration->output_file, optarg, STR_MAX_LEN);
                 break;
 
-            case 'c':
-                base_configuration->cpu_core_multiplier = atoi(optarg);
+            case 'n':
+                base_configuration->cpu_core_multiplier = strtoul(optarg, NULL, 10);
                 break;
             case 'f':
                 base_configuration = read_cfg_file(base_configuration, optarg);
-                return base_configuration;
                 break;
             default:
                 break;
@@ -119,7 +118,7 @@ char *get_word(char *source, char *target) {
  * @return a pointer to the base configuration after update, NULL is reading failed.
  */
 configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_to_cfg_file) {
-    if (base_configuration == NULL || path_to_cfg_file == NULL) {
+    if (base_configuration == NULL || !path_to_file_exists(path_to_cfg_file)) {
         return NULL;
     }
     FILE *cfg_file = fopen(path_to_cfg_file, "r");
@@ -130,11 +129,11 @@ configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_t
     while (!feof(cfg_file)) {
         char line[STR_MAX_LEN], key[STR_MAX_LEN], value[STR_MAX_LEN];
         fgets(line, STR_MAX_LEN, cfg_file);
-        strncpy(line, skip_spaces(line), STR_MAX_LEN);
-        strncpy(line, get_word(line, key), STR_MAX_LEN);
-        strncpy(line, check_equal(line), STR_MAX_LEN);
-        strncpy(line, skip_spaces(line), STR_MAX_LEN);
-        strncpy(line, get_word(line, value), STR_MAX_LEN);
+        char* tmpl = skip_spaces(line);
+        tmpl = get_word(tmpl, key);
+        tmpl = check_equal(tmpl);
+        tmpl = skip_spaces(tmpl);
+        tmpl = get_word(tmpl, value);
 
         if (strcmp(key, "data_path") == 0) {
             strncpy(base_configuration->data_path, value, STR_MAX_LEN);
@@ -143,7 +142,7 @@ configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_t
         } else if (strcmp(key, "output_file") == 0) {
             strncpy(base_configuration->output_file, value, STR_MAX_LEN);
         } else if (strcmp(key, "cpu_core_multiplier") == 0) {
-            base_configuration->cpu_core_multiplier = atoi(value);
+            base_configuration->cpu_core_multiplier = strtoul(value, NULL, 10);
         } else if (strcmp(key, "is_verbose") == 0) {
             if (strcmp(value, "true") == 0 || strcmp(value, "1") == 0 || strcmp(value, "yes") == 0) {
                 base_configuration->is_verbose = true;

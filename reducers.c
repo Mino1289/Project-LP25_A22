@@ -39,9 +39,8 @@ sender_t* add_source_to_list(sender_t* list, char* source_email){
         temp_sender->tail = NULL;
 
         return temp_sender;
-    } else {
-        return list;
-    }
+    } 
+    return list;
 }
 
 /*!
@@ -74,11 +73,7 @@ sender_t* find_source_in_list(sender_t* list, char* source_email){
     while (temp != NULL && strcmp(temp->sender_address, source_email) != 0) {
         temp = temp->next;
     }
-    if (temp == NULL) {
-        return NULL;
-    } else {
-        return temp;
-    }
+    return temp;
 }
 
 /*!
@@ -130,14 +125,14 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
     FILE* output = fopen(output_file, "w");
     if (!output) {
         perror("Cannot open output_file");
-        return;
+        exit(EXIT_FAILURE);
     }
 
     // Open the temporary files directory
     DIR* temp_dir = opendir(temp_files);
     if (!temp_dir) {
         perror("Cannot open directory");
-        return;
+        exit(EXIT_FAILURE);
     }
 
     // Read the entries in the directory
@@ -157,7 +152,7 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
                 FILE* temp_file = fopen(temp_file_path, "r");
                 if (!temp_file) {
                     perror("Cannot open file");
-                    continue;
+                    exit(EXIT_FAILURE);
                 }
 
                 while(fgets(buffer, sizeof(buffer), temp_file) != NULL){
@@ -192,6 +187,7 @@ void files_reducer(char* temp_file, char* output_file)
     
     if (!temp_f){
         perror("Cannot open temp_file");
+        exit(EXIT_FAILURE);
     }
 
     sender_t* temp_linked_list = NULL;
@@ -216,6 +212,7 @@ void files_reducer(char* temp_file, char* output_file)
 
     if (!output){
         perror("Cannot open output_file");
+        exit(EXIT_FAILURE);
     }
     
     sender_t* temp_sender = temp_linked_list;

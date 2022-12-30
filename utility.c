@@ -93,6 +93,10 @@ bool path_to_file_exists(char *path) {
  */
 void sync_temporary_files(char *temp_dir) {
     int fd = open(temp_dir, O_RDONLY);
+    if (fd == -1) {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
     fsync(fd);
     close(fd);
 }
@@ -106,6 +110,6 @@ void sync_temporary_files(char *temp_dir) {
 struct dirent *next_dir(struct dirent *entry, DIR *dir) {
     do {
         entry = readdir(dir);
-    } while (entry && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")));
+    } while (entry && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) && entry->d_type == DT_DIR);
     return entry;
 }
