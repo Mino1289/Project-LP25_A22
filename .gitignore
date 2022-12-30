@@ -9,7 +9,6 @@ maildir*
 /maildir
 temp/*
 main
-config
 
 .vscode
 *.tgz

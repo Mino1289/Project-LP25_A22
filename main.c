@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    config.process_count = get_nprocs() * config.cpu_core_multiplier;
+    config.process_count = 2;//get_nprocs() * config.cpu_core_multiplier;
     printf("Running analysis on configuration:\n");
     display_configuration(&config);
     print_msg(config, "\nPlease wait, it can take a while\n\n");
