@@ -64,6 +64,7 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
                     t->task_callback((task_t*) t);
 
                     free(t);
+                    closedir(dir);
                     exit(EXIT_SUCCESS);
                 } else if (pid > 0) {
                     // parent process
@@ -71,6 +72,7 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
                 } else {
                     // error
                     printf("Error: could not fork.\n");
+                    closedir(dir);
                     exit(EXIT_FAILURE);
                 }
             }
@@ -105,6 +107,7 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
     // 2. Iterate over files in files list (step1_output)
     FILE* files_list = fopen(data_source, "r");
     if (files_list == NULL) {
+        fclose(files_list);
         printf("Error: could not open %s.\n", data_source);
         return;
     }
@@ -138,6 +141,7 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
             } else {
                 // error
                 printf("Error: could not fork.\n");
+                fclose(files_list);
                 exit(EXIT_FAILURE);
             }
         }

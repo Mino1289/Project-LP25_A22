@@ -32,7 +32,7 @@ void parse_dir(char *path, FILE *output_file) {
     char *entry_path = (char *) malloc(sizeof(char) * STR_MAX_LEN);
 
     // 2. Gor through all entries: if file, write it to the output file; if a dir, call parse dir on it
-    while (entries) {
+    do {
         entries = next_dir(entries, dir);
         if (entries) {
             switch (entries->d_type) {
@@ -48,7 +48,7 @@ void parse_dir(char *path, FILE *output_file) {
                     break;
             }
         }
-    }
+    } while (entries);
     // 3. Clear all allocated resources (dirent pointer should not be free'd)
     closedir(dir);
     free(entry_path);
