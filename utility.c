@@ -105,6 +105,6 @@ void sync_temporary_files(char *temp_dir) {
 struct dirent *next_dir(struct dirent *entry, DIR *dir) {
     do {
         entry = readdir(dir);
-    } while (entry && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")));
+    } while (entry && (entry->d_type != DT_DIR || !strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")));
     return entry;
 }
