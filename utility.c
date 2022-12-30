@@ -67,6 +67,7 @@ bool directory_exists(char *path)
  * @return true if path to file exists, false else
  */
 bool path_to_file_exists(char *path) {
+    if (!path) return false;
     char path_copy[STR_MAX_LEN];
     strcpy(path_copy, path);
     char *dir_path = dirname(path_copy);
