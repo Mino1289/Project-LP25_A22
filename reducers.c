@@ -185,7 +185,7 @@ void files_reducer(char* temp_file, char* output_file)
     FILE* temp_f = fopen(temp_file, "r");
     char buffer_line[STR_MAX_LEN];
     
-    if (!temp_f){
+    if (!temp_f){ // error here
         perror("Cannot open temp_file");
         exit(EXIT_FAILURE);
     }

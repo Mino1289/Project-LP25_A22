@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    config.process_count = 2;//get_nprocs() * config.cpu_core_multiplier;
+    config.process_count = 1;//get_nprocs() * config.cpu_core_multiplier;
     printf("Running analysis on configuration:\n");
     display_configuration(&config);
     print_msg(config, "\nPlease wait, it can take a while\n\n");
@@ -84,10 +84,9 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     pid_t *my_children = mq_make_processes(&config, mq);
-
+	
     // Execution
     mq_process_directory(&config, mq, my_children);
-
     sync_temporary_files(config.temporary_directory);
     char temp_result_name[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step1_output", temp_result_name);
@@ -96,7 +95,10 @@ int main(int argc, char *argv[]) {
     sync_temporary_files(config.temporary_directory);
     char step2_file[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step2_output", step2_file);
-    files_reducer(step2_file, config.output_file);
+    
+    printf("test\n");
+    
+    files_reducer(step2_file, config.output_file); // error here
     
     // Clean
     close_processes(&config, mq, my_children);
