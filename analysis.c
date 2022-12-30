@@ -25,10 +25,9 @@
 void parse_dir(char *path, FILE *output_file) {
     // 1. Check parameters
 
-    //if (!directory_exists(path)) return; TODO:
     DIR *dir = opendir(path);
     if (!dir) return;
-    struct dirent *entries = readdir(dir);
+    struct dirent *entries;
 
     char *entry_path = (char *) malloc(sizeof(char) * STR_MAX_LEN);
 
@@ -36,19 +35,18 @@ void parse_dir(char *path, FILE *output_file) {
     while (entries) {
         entries = next_dir(entries, dir);
         if (entries) {
-        switch (entries->d_type) {
-            case DT_DIR:
-                entry_path = concat_path(path, entries->d_name, entry_path);
-                parse_dir(entry_path, output_file);
-                break;
-            case DT_REG:
-                entry_path = concat_path(path, entries->d_name, entry_path);
-                fprintf(output_file, "%s\n", entry_path);
-                break;
-            default:
-                break;
-        }
-
+            switch (entries->d_type) {
+                case DT_DIR:
+                    concat_path(path, entries->d_name, entry_path);
+                    parse_dir(entry_path, output_file);
+                    break;
+                case DT_REG:
+                    concat_path(path, entries->d_name, entry_path);
+                    fprintf(output_file, "%s\n", entry_path);
+                    break;
+                default:
+                    break;
+            }
         }
     }
     // 3. Clear all allocated resources (dirent pointer should not be free'd)
