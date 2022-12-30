@@ -30,16 +30,18 @@ void parse_dir(char *path, FILE *output_file) {
     if (!dir) return;
     struct dirent *entries;
 
-    char *entry_path = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+    char entry_path[STR_MAX_LEN];
 
     // 2. Gor through all entries: if file, write it to the output file; if a dir, call parse dir on it
     do {
-        entries = next_dir(entries, dir); //TODO: replace with readdir and test . & ..
+        entries = readdir(dir);
         if (entries) {
             switch (entries->d_type) {
                 case DT_DIR:
-                    concat_path(path, entries->d_name, entry_path);
-                    parse_dir(entry_path, output_file);
+                    if (!strcmp(entries->d_name, ".") && !strcmp(entries->d_name, "..")) {
+                        concat_path(path, entries->d_name, entry_path);
+                        parse_dir(entry_path, output_file);
+                    }
                     break;
                 case DT_REG:
                     concat_path(path, entries->d_name, entry_path);
@@ -52,7 +54,7 @@ void parse_dir(char *path, FILE *output_file) {
     } while (entries);
     // 3. Clear all allocated resources (dirent pointer should not be free'd)
     closedir(dir);
-    free(entry_path);
+    //free(entry_path);
 }
 
 /*!
