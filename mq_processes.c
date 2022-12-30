@@ -63,16 +63,13 @@ void child_process(int mq)
         }
 
         if (task.task_callback == NULL)
-
-        if (task.task_callback == NULL)
         {
             break;
         }
 
         task.task_callback(&task);
-
-        task.task_callback(&task);
     }
+    exit(EXIT_SUCCESS);
 }
 
 /*!
@@ -106,6 +103,7 @@ pid_t *mq_make_processes(configuration_t *config, int mq)
         else if (pid == 0)
         {
             child_process(mq);
+            exit(EXIT_SUCCESS);
         }
         else
         {
@@ -149,8 +147,6 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
             exit(EXIT_FAILURE);
         }
     }
-
-    free(children);
 }
 
 /*!
@@ -270,57 +266,5 @@ void mq_process_directory(configuration_t *config, int mq, pid_t children[])
  */
 void mq_process_files(configuration_t *config, int mq, pid_t children[])
 {
-    if (config == NULL)
-    {
-        return;
-    }
-
-    int tasks_count = 0;
-    int workers_count = config->process_count;
-    int workers_done = 0;
-
-    DIR *dir = opendir(config->data_path);
-    if (dir == NULL)
-    {
-        perror("opendir");
-        exit(EXIT_FAILURE);
-    }
-
-    struct dirent *entry;
-    while ((entry = readdir(dir)) != NULL)
-    {
-        if (entry->d_type == DT_REG)
-        {
-            if (tasks_count < workers_count)
-            {
-                send_file_task_to_mq(config->data_path, config->temporary_directory, entry->d_name, mq, children[tasks_count]);
-                tasks_count++;
-            }
-            else
-            {
-                task_t task;
-                if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), 0, 0) == -1)
-                {
-                    perror("msgrcv");
-                    exit(EXIT_FAILURE);
-                }
-
-                send_file_task_to_mq(config->data_path, config->temporary_directory, entry->d_name, mq, children[tasks_count]);
-            }
-        }
-    }
-
-    while (workers_done < workers_count)
-    {
-        task_t task;
-        if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), 0, 0) == -1)
-        {
-            perror("msgrcv");
-            exit(EXIT_FAILURE);
-        }
-
-        workers_done++;
-    }
-
-    closedir(dir);
+    
 }

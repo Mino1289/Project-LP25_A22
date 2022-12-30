@@ -91,11 +91,12 @@ int main(int argc, char *argv[]) {
     char temp_result_name[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step1_output", temp_result_name);
     files_list_reducer(config.data_path, config.temporary_directory, temp_result_name);
-    mq_process_files(&config, mq, my_children);
-    sync_temporary_files(config.temporary_directory);
     
     char step2_file[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step2_output", step2_file);
+
+    mq_process_files(&config, mq, my_children);
+    sync_temporary_files(config.temporary_directory);
     
     printf("test\n");
     
