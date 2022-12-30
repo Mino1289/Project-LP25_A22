@@ -97,6 +97,7 @@ void sync_temporary_files(char *temp_dir) {
     close(fd);
 }
 
+
 /*!
  * @brief next_dir returns the next directory entry that is not . or ..
  * @param entry a pointer to the current struct dirent in caller
@@ -106,6 +107,6 @@ void sync_temporary_files(char *temp_dir) {
 struct dirent *next_dir(struct dirent *entry, DIR *dir) {
     do {
         entry = readdir(dir);
-    } while (entry && (entry->d_type != DT_DIR || !strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")));
+    } while (entry && entry->d_type == DT_DIR && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")));
     return entry;
 }

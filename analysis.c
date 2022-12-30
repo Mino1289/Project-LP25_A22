@@ -33,7 +33,7 @@ void parse_dir(char *path, FILE *output_file) {
     char *entry_path = (char *) malloc(sizeof(char) * STR_MAX_LEN);
 
     // 2. Gor through all entries: if file, write it to the output file; if a dir, call parse dir on it
-    while (entries) {
+    do {
         entries = next_dir(entries, dir); //TODO: replace with readdir and test . & ..
         if (entries) {
             switch (entries->d_type) {
@@ -63,10 +63,6 @@ void clear_recipient_list(simple_recipient_t *list) {
     if (list) {
         clear_recipient_list(list->next);
         free(list);
-    }
-
-    while (list) {
-
     }
 }
 
@@ -217,6 +213,7 @@ void process_file(task_t *task) {
     file_task_t *file_task = (file_task_t *) task;
 
     if (!path_to_file_exists(file_task->object_file)) return;
+    
     // 2. Build full path to all parameters
     char filepath[STR_MAX_LEN];
     realpath(file_task->object_file, filepath);
