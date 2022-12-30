@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 #include "utility.h"
 
@@ -129,11 +130,11 @@ configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_t
     while (!feof(cfg_file)) {
         char line[STR_MAX_LEN], key[STR_MAX_LEN], value[STR_MAX_LEN];
         fgets(line, STR_MAX_LEN, cfg_file);
-        strcpy(line, skip_spaces(line));
-        strcpy(line, get_word(line, key));
-        strcpy(line, check_equal(line));
-        strcpy(line, skip_spaces(line));
-        strcpy(line, get_word(line, value));
+        strncpy(line, skip_spaces(line), STR_MAX_LEN);
+        strncpy(line, get_word(line, key), STR_MAX_LEN);
+        strncpy(line, check_equal(line), STR_MAX_LEN);
+        strncpy(line, skip_spaces(line), STR_MAX_LEN);
+        strncpy(line, get_word(line, value), STR_MAX_LEN);
 
         if (strcmp(key, "data_path") == 0) {
             strncpy(base_configuration->data_path, value, STR_MAX_LEN);
@@ -153,7 +154,7 @@ configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_t
             printf("Unknown key: %s\n", key);
         }
     }
-
+    fclose(cfg_file);
     return base_configuration;
 }
 
@@ -169,7 +170,6 @@ void display_configuration(configuration_t *configuration) {
     printf("\tVerbose mode is %s\n", configuration->is_verbose ? "on" : "off");
     printf("\tCPU multiplier is %d\n", configuration->cpu_core_multiplier);
     printf("\tProcess count is %d\n", configuration->process_count);
-    printf("End configuration\n");
 }
 
 /*!
@@ -187,6 +187,22 @@ bool is_configuration_valid(configuration_t *configuration)
          (configuration->cpu_core_multiplier >= 1))) {
 
         return true;
+    } else {
+        return false;
     }
-    return false;
+}
+
+/*!
+ * @brief print_msg prints a message to stdout, if verbose mode is on
+ * @param config the configuration to check for verbose mode
+ * @param format the format string
+ * @param ... the arguments to the format string
+ */
+void print_msg(configuration_t config, char* format, ...) {
+    if (config.is_verbose) {
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+    }
 }

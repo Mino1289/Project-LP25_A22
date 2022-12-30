@@ -119,8 +119,13 @@ void close_fifos(uint16_t processes_count, int *files) {
  */
 void shutdown_processes(uint16_t processes_count, int *fifos) {
     // 1. Loop over processes_count
-    // 2. Create an empty task (with a NULL callback)
-    // 3. Send task to current process
+    for(uint16_t i = 0; i<processes_count; i++){
+        // 2. Create an empty task (with a NULL callback)
+        task_t task;
+        task.task_callback=NULL;
+        // 3. Send task to current process
+        write(fifos[i],&task,sizeof(task));
+    }
 }
 
 /*!

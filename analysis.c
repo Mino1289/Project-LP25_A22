@@ -25,7 +25,7 @@
 void parse_dir(char *path, FILE *output_file) {
     // 1. Check parameters
 
-    if (!directory_exists(path)) return; TODO:
+    if (!directory_exists(path)) return;
     DIR *dir = opendir(path);
     if (!dir) return;
     struct dirent *entries = readdir(dir);
@@ -94,10 +94,10 @@ simple_recipient_t *add_recipient_to_list(char *recipient_email, simple_recipien
  * @param buffer the buffer containing the e-mail
  * @param destination the buffer into which the e-mail is copied
  */
-void extract_e_mail(char buffer[], char destination[]) {
+void extract_e_mail(char *buffer, char *destination) {
     sscanf(buffer, "%[^\n]", destination); //getting rid of \n
     char *last = strrchr(destination, ' '); //finding last word
-    if (last) strcpy(destination, last);
+    if (last) strncpy(destination, last, STR_MAX_LEN);
     sscanf(destination, "%s", destination); //getting rid of tabs and spaces
 }
 
@@ -116,7 +116,6 @@ simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
             if (strlen(dest) > 2) list = add_recipient_to_list(dest, list); // 3. Add each e-mail to list
             token = strtok(NULL, ",");
         }
-        free(token);
     }
     return list; // 4. Return list
 }
@@ -149,30 +148,31 @@ void parse_file(char *filepath, char *output) {
 
     // 2. Go through e-mail and extract From: address into a buffer
     while ((buffer = fgets(buffer,STR_MAX_LEN, file)) && !strstr(buffer, "From:"));
-    if (!buffer) return;
-    extract_e_mail(buffer, sender);
-    read_status = IN_DEST_FIELD;
 
-    // 3. Extract recipients (To, Cc, Bcc fields) and put it to a recipients list.
-    while (read_status == IN_DEST_FIELD) {
-        fgets(buffer, STR_MAX_LEN, file);
-        if (buffer[0] != '\t' && !strstr(buffer, "To:") && !strstr(buffer, "Cc:") && !strstr(buffer, "Bcc:")) {
-            read_status = OUT_OF_DEST_FIELD;
-        } else {
-            recipient_list = extract_emails(buffer, recipient_list);
+    if (buffer) {
+        extract_e_mail(buffer, sender);
+        read_status = IN_DEST_FIELD;
+
+        // 3. Extract recipients (To, Cc, Bcc fields) and put it to a recipients list.
+        while (read_status == IN_DEST_FIELD) {
+            fgets(buffer, STR_MAX_LEN, file);
+            if (buffer[0] != '\t' && !strstr(buffer, "To:") && !strstr(buffer, "Cc:") && !strstr(buffer, "Bcc:")) {
+                read_status = OUT_OF_DEST_FIELD;
+            } else {
+                recipient_list = extract_emails(buffer, recipient_list);
+            }
         }
-    }
 
-    flock(fileno(output_file), LOCK_EX); // 4. Lock output file
+        flock(fileno(output_file), LOCK_EX); // 4. Lock output file
 
-    // 5. Write to output file according to project instructions
-    fprintf(output_file, "%s ", sender);
-    for (simple_recipient_t *recipient = recipient_list; recipient != NULL; recipient = recipient->next) {
-        fprintf(output_file, "%s ", recipient->email);
-        printf("%s\n", recipient->email);
-    }
-
-    flock(fileno(output_file), LOCK_UN); // 6. Unlock file
+        // 5. Write to output file according to project instructions
+        fprintf(output_file, "%s ", sender);
+        for (simple_recipient_t *recipient = recipient_list; recipient != NULL; recipient = recipient->next) {
+            fprintf(output_file, "%s ", recipient->email);
+        }
+        flock(fileno(output_file), LOCK_UN); // 6. Unlock file
+        fprintf(output_file, "\n");
+    };
 
     // 7. Close file
     fclose(file);

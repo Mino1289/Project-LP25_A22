@@ -10,10 +10,7 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-
-#include <stdio.h>
-//TODO: remove
+#include <stdio.h> //for path_to_file_exists, may remove file existence check
 
 #include "global_defs.h"
 
@@ -45,8 +42,7 @@ char *concat_path(char *prefix, char *suffix, char *full_path) {
  * @param path the path whose existence to test
  * @return true if directory exists, false else
  */
-bool directory_exists(char *path)
-{
+bool directory_exists(char *path) {
     if (!path) return false;
     DIR *dir = opendir(path);
     if (dir) {
@@ -67,6 +63,7 @@ bool directory_exists(char *path)
  * @return true if path to file exists, false else
  */
 bool path_to_file_exists(char *path) {
+    if (!path) return false;
     char path_copy[STR_MAX_LEN];
     strcpy(path_copy, path);
     char *dir_path = dirname(path_copy);
