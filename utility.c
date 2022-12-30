@@ -89,6 +89,10 @@ bool path_to_file_exists(char *path) {
  */
 void sync_temporary_files(char *temp_dir) {
     int fd = open(temp_dir, O_RDONLY);
+    if (fd == -1) {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
     fsync(fd);
     close(fd);
 }

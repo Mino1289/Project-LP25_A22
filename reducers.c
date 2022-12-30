@@ -39,9 +39,8 @@ sender_t* add_source_to_list(sender_t* list, char* source_email){
         temp_sender->tail = NULL;
 
         return temp_sender;
-    } else {
-        return list;
-    }
+    } 
+    return list;
 }
 
 /*!
@@ -49,18 +48,18 @@ sender_t* add_source_to_list(sender_t* list, char* source_email){
  * @param list a pointer to the list to clear
  */
 void clear_sources_list(sender_t* list){
-    if (list == NULL) {
-        return;
-    } else {
-        clear_sources_list(list->next);
-        if (list->head != NULL) {
-            while (list->head->next != NULL) {
-                list->head = list->head->next;
-                free(list->head->prev);
+    sender_t* temp = list;
+    while (temp != NULL) {
+        list = list->next;
+        if (temp->head != NULL) {
+            while (temp->head->next != NULL) {
+                temp->head = temp->head->next;
+                free(temp->head->prev);
             }
-            free(list->head);
+            free(temp->head);
         }
-        free(list);
+        free(temp);
+        temp = list;
     }
 }
 /*!
@@ -74,11 +73,7 @@ sender_t* find_source_in_list(sender_t* list, char* source_email){
     while (temp != NULL && strcmp(temp->sender_address, source_email) != 0) {
         temp = temp->next;
     }
-    if (temp == NULL) {
-        return NULL;
-    } else {
-        return temp;
-    }
+    return temp;
 }
 
 /*!
@@ -130,14 +125,14 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
     FILE* output = fopen(output_file, "w");
     if (!output) {
         perror("Cannot open output_file");
-        return;
+        exit(EXIT_FAILURE);
     }
 
     // Open the temporary files directory
     DIR* temp_dir = opendir(temp_files);
     if (!temp_dir) {
         perror("Cannot open directory");
-        return;
+        exit(EXIT_FAILURE);
     }
 
     // Read the entries in the directory
@@ -157,7 +152,7 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
                 FILE* temp_file = fopen(temp_file_path, "r");
                 if (!temp_file) {
                     perror("Cannot open file");
-                    continue;
+                    exit(EXIT_FAILURE);
                 }
 
                 while(fgets(buffer, sizeof(buffer), temp_file) != NULL){
@@ -192,6 +187,7 @@ void files_reducer(char* temp_file, char* output_file)
     
     if (!temp_f){
         perror("Cannot open temp_file");
+        exit(EXIT_FAILURE);
     }
 
     sender_t* temp_linked_list = NULL;
@@ -211,11 +207,12 @@ void files_reducer(char* temp_file, char* output_file)
         }
     }
     fclose(temp_f);
-
+    printf("Done reading %s\n", temp_file);
     FILE* output = fopen(output_file, "w");
 
     if (!output){
         perror("Cannot open output_file");
+        exit(EXIT_FAILURE);
     }
     
     sender_t* temp_sender = temp_linked_list;
@@ -223,19 +220,25 @@ void files_reducer(char* temp_file, char* output_file)
 
     while(temp_sender != NULL){
         temp_recipient = temp_sender->head;
-        char dest_line[STR_MAX_LEN+1];
+        char* dest_line = (char*) malloc(sizeof(char)*(STR_MAX_LEN));
         sprintf(dest_line, "%s ", temp_sender->sender_address);
         
         while (temp_recipient != NULL){
-            char dest_recipient[2*STR_MAX_LEN];
+            char* dest_recipient = (char*) malloc(sizeof(char)*(STR_MAX_LEN+3));
             sprintf(dest_recipient, "%d:%s ", temp_recipient->occurrences, temp_recipient->recipient_address);
+            if (strlen(dest_line) + strlen(dest_recipient) > sizeof(*dest_line)) {
+                // realloc dest_line
+                dest_line = (char*) realloc(dest_line, sizeof(char)*(strlen(dest_line) + strlen(dest_recipient)+1));
+            } 
             strcat(dest_line, dest_recipient);
             temp_recipient = temp_recipient->next;
+            free(dest_recipient);
         }
         
         fputs(dest_line, output);
         fputs("\n", output);
         temp_sender = temp_sender->next;
+        free(dest_line);
     }
     fclose(output);
     clear_sources_list(temp_linked_list);

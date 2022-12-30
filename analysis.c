@@ -28,7 +28,7 @@ void parse_dir(char *path, FILE *output_file) {
     if (!directory_exists(path)) return;
     DIR *dir = opendir(path);
     if (!dir) return;
-    struct dirent *entries = readdir(dir);
+    struct dirent *entries;
 
     char *entry_path = (char *) malloc(sizeof(char) * STR_MAX_LEN);
 
@@ -36,21 +36,20 @@ void parse_dir(char *path, FILE *output_file) {
     while (entries) {
         entries = next_dir(entries, dir); //TODO: replace with readdir and test . & ..
         if (entries) {
-        switch (entries->d_type) {
-            case DT_DIR:
-                entry_path = concat_path(path, entries->d_name, entry_path);
-                parse_dir(entry_path, output_file);
-                break;
-            case DT_REG:
-                entry_path = concat_path(path, entries->d_name, entry_path);
-                fprintf(output_file, "%s\n", entry_path);
-                break;
-            default:
-                break;
+            switch (entries->d_type) {
+                case DT_DIR:
+                    concat_path(path, entries->d_name, entry_path);
+                    parse_dir(entry_path, output_file);
+                    break;
+                case DT_REG:
+                    concat_path(path, entries->d_name, entry_path);
+                    fprintf(output_file, "%s\n", entry_path);
+                    break;
+                default:
+                    break;
+            }
         }
-
-        }
-    }
+    } while (entries);
     // 3. Clear all allocated resources (dirent pointer should not be free'd)
     closedir(dir);
     free(entry_path);
@@ -217,7 +216,7 @@ void process_file(task_t *task) {
     if (!task) return;
     file_task_t *file_task = (file_task_t *) task;
 
-    if (!path_to_file_exists(file_task->object_file) || !path_to_file_exists(file_task->temporary_directory)) return;
+    if (!path_to_file_exists(file_task->object_file)) return;
     // 2. Build full path to all parameters
     char filepath[STR_MAX_LEN];
     realpath(file_task->object_file, filepath);

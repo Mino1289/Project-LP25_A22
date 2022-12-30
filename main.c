@@ -142,13 +142,12 @@ int main(int argc, char *argv[]) {
     
     print_msg(config, "Reducing files list\n");
     files_list_reducer(config.data_path, config.temporary_directory, direct_temp_result_name);
-    
     char direct_step2_file[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step2_output", direct_step2_file);
 
     print_msg(config, "Forking files\n");
     direct_fork_files(direct_temp_result_name, direct_step2_file, config.process_count);
-   
+
     print_msg(config, "Syncing temporary files\n");
     sync_temporary_files(config.temporary_directory);
     
