@@ -223,19 +223,25 @@ void files_reducer(char* temp_file, char* output_file)
 
     while(temp_sender != NULL){
         temp_recipient = temp_sender->head;
-        char dest_line[STR_MAX_LEN+1];
+        char* dest_line = (char*) malloc(sizeof(char)*(STR_MAX_LEN));
         sprintf(dest_line, "%s ", temp_sender->sender_address);
         
         while (temp_recipient != NULL){
-            char dest_recipient[2*STR_MAX_LEN];
+            char* dest_recipient = (char*) malloc(sizeof(char)*(STR_MAX_LEN+3));
             sprintf(dest_recipient, "%d:%s ", temp_recipient->occurrences, temp_recipient->recipient_address);
+            if (strlen(dest_line) + strlen(dest_recipient) > sizeof(*dest_line)) {
+                // realloc dest_line
+                dest_line = (char*) realloc(dest_line, sizeof(char)*(strlen(dest_line) + strlen(dest_recipient)+1));
+            } 
             strcat(dest_line, dest_recipient);
             temp_recipient = temp_recipient->next;
+            free(dest_recipient);
         }
         
         fputs(dest_line, output);
         fputs("\n", output);
         temp_sender = temp_sender->next;
+        free(dest_line);
     }
     fclose(output);
     clear_sources_list(temp_linked_list);
