@@ -93,12 +93,15 @@ int main(int argc, char *argv[]) {
     files_list_reducer(config.data_path, config.temporary_directory, temp_result_name);
     mq_process_files(&config, mq, my_children);
     sync_temporary_files(config.temporary_directory);
+    
     char step2_file[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step2_output", step2_file);
     
     printf("test\n");
     
     files_reducer(step2_file, config.output_file); // error here
+    
+    printf("test2\n");
     
     // Clean
     close_processes(&config, mq, my_children);
