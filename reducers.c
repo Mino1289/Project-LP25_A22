@@ -48,18 +48,18 @@ sender_t* add_source_to_list(sender_t* list, char* source_email){
  * @param list a pointer to the list to clear
  */
 void clear_sources_list(sender_t* list){
-    if (list == NULL) {
-        return;
-    } else {
-        clear_sources_list(list->next);
-        if (list->head != NULL) {
-            while (list->head->next != NULL) {
-                list->head = list->head->next;
-                free(list->head->prev);
+    sender_t* temp = list;
+    while (temp != NULL) {
+        list = list->next;
+        if (temp->head != NULL) {
+            while (temp->head->next != NULL) {
+                temp->head = temp->head->next;
+                free(temp->head->prev);
             }
-            free(list->head);
+            free(temp->head);
         }
-        free(list);
+        free(temp);
+        temp = list;
     }
 }
 /*!
@@ -207,7 +207,7 @@ void files_reducer(char* temp_file, char* output_file)
         }
     }
     fclose(temp_f);
-
+    printf("Done reading %s\n", temp_file);
     FILE* output = fopen(output_file, "w");
 
     if (!output){
