@@ -63,16 +63,13 @@ void child_process(int mq)
         }
 
         if (task.task_callback == NULL)
-
-        if (task.task_callback == NULL)
         {
             break;
         }
 
         task.task_callback(&task);
-
-        task.task_callback(&task);
     }
+    exit(EXIT_SUCCESS);
 }
 
 /*!
@@ -106,6 +103,7 @@ pid_t *mq_make_processes(configuration_t *config, int mq)
         else if (pid == 0)
         {
             child_process(mq);
+            exit(EXIT_SUCCESS);
         }
         else
         {
@@ -149,8 +147,6 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
             exit(EXIT_FAILURE);
         }
     }
-
-    free(children);
 }
 
 /*!
