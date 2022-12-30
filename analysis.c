@@ -86,10 +86,10 @@ simple_recipient_t *add_recipient_to_list(char *recipient_email, simple_recipien
  * @param buffer the buffer containing the e-mail
  * @param destination the buffer into which the e-mail is copied
  */
-void extract_e_mail(char buffer[], char destination[]) {
+void extract_e_mail(char* buffer, char* destination) {
     sscanf(buffer, "%[^\n]", destination); //getting rid of \n
     char *last = strrchr(destination, ' '); //finding last word
-    if (last) strcpy(destination, last);
+    if (last) strncpy(destination, last, STR_MAX_LEN);
     sscanf(destination, "%s", destination); //getting rid of tabs and spaces
 }
 
@@ -102,6 +102,7 @@ void extract_e_mail(char buffer[], char destination[]) {
 simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
     if (buffer) { // 1. Check parameters
         char *token = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+        char* tmp = token;
         token = strtok(buffer, ",");
         while (token) {
             char dest[STR_MAX_LEN];
@@ -109,7 +110,7 @@ simple_recipient_t *extract_emails(char *buffer, simple_recipient_t *list) {
             if (strlen(dest) > 2) list = add_recipient_to_list(dest, list); // 3. Add each e-mail to list
             token = strtok(NULL, ",");
         }
-        free(token);
+        free(tmp);
     }
     return list; // 4. Return list
 }
@@ -126,19 +127,32 @@ typedef enum {IN_DEST_FIELD, OUT_OF_DEST_FIELD} read_status_t;
  * and clear_recipient_list
  */
 void parse_file(char *filepath, char *output) {
-    FILE *file, *output_file;
-
-    if (!(file = fopen(filepath, "r")) || !(output_file = fopen(output, "a"))) {
-        return; // 1. Check parameters
+    // 1. Check parameters and open files
+    FILE* file = fopen(filepath, "r");
+    if (!file) {
+        fclose(file);
+        return;
     }
-    char *buffer = (char *) malloc(sizeof(char) * STR_MAX_LEN);
+    FILE* output_file = fopen(output, "a");
+    if (!output_file) {
+        fclose(file);
+        return;
+    }
+
+    char* buffer = (char *) malloc(sizeof(char) * STR_MAX_LEN);
     char sender[STR_MAX_LEN];
     read_status_t read_status = OUT_OF_DEST_FIELD;
     simple_recipient_t *recipient_list = NULL;
 
     // 2. Go through e-mail and extract From: address into a buffer
     while ((buffer = fgets(buffer,STR_MAX_LEN, file)) && !strstr(buffer, "From:"));
-    if (!buffer) return;
+    if (!buffer) {
+        // fclose(file);
+        // fclose(output_file);
+        // free(buffer);
+        // clear_recipient_list(recipient_list);
+        return;
+    };
     extract_e_mail(buffer, sender);
     read_status = IN_DEST_FIELD;
 
@@ -158,10 +172,9 @@ void parse_file(char *filepath, char *output) {
     fprintf(output_file, "%s ", sender);
     for (simple_recipient_t *recipient = recipient_list; recipient != NULL; recipient = recipient->next) {
         fprintf(output_file, "%s ", recipient->email);
-        printf("%s\n", recipient->email);
     }
-
     flock(fileno(output_file), LOCK_UN); // 6. Unlock file
+    fprintf(output_file, "\n");
 
     // 7. Close file
     fclose(file);
@@ -206,17 +219,16 @@ void process_file(task_t *task) {
     if (!task) return;
     file_task_t *file_task = (file_task_t *) task;
 
-    if (!path_to_file_exists(file_task->object_file) || !path_to_file_exists(file_task->temporary_directory)) return;
+    if (!path_to_file_exists(file_task->object_file)) return;
     // 2. Build full path to all parameters
-    char *filepath = (char *) malloc(sizeof(char) * STR_MAX_LEN);
-    filepath = realpath(file_task->object_file, filepath);
+    char filepath[STR_MAX_LEN];
+    realpath(file_task->object_file, filepath);
 
-    char *output = (char *) malloc(sizeof(char) * STR_MAX_LEN);
-    output = realpath(file_task->temporary_directory, output);
-
+    char output[STR_MAX_LEN];
+    realpath(file_task->temporary_directory, output);
     // 3. Call parse_file
     parse_file(filepath, output);
 
-    free(filepath);
-    free(output);
+    // free(filepath);
+    // free(output);
 }
