@@ -197,8 +197,10 @@ void files_reducer(char* temp_file, char* output_file) {
         char sender[STR_MAX_LEN];
         strcpy(sender, piece);
         temp_linked_list = add_source_to_list(temp_linked_list, sender);
+        
+        sender_t *source = find_source_in_list(temp_linked_list, sender);
         while ((piece = strtok(NULL, " "))) {
-            add_recipient_to_source(find_source_in_list(temp_linked_list, sender), piece);
+            add_recipient_to_source(source, piece);
         }
     }
 
