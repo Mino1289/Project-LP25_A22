@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    config.process_count = 1;//get_nprocs() * config.cpu_core_multiplier;
+    config.process_count = get_nprocs() * config.cpu_core_multiplier;
     printf("Running analysis on configuration:\n");
     display_configuration(&config);
     print_msg(config, "\nPlease wait, it can take a while\n\n");
@@ -151,8 +151,6 @@ int main(int argc, char *argv[]) {
     concat_path(config.temporary_directory, "step1_output", direct_temp_result_name);
     
     print_msg(config, "Reducing files list\n");
-    
-    print_msg(config, "Reducing files list\n");
     files_list_reducer(config.data_path, config.temporary_directory, direct_temp_result_name);
     
     char direct_step2_file[STR_MAX_LEN];
@@ -167,10 +165,8 @@ int main(int argc, char *argv[]) {
     print_msg(config, "Reducing files\n");
     files_reducer(direct_step2_file, config.output_file);
     
-    
 #endif
 
-    print_msg(config, "Analysis finished\n");
     print_msg(config, "Analysis finished\n");
     return 0;
 }
