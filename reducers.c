@@ -182,7 +182,7 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
  */
 void files_reducer(char* temp_file, char* output_file) {
     FILE* temp_f = fopen(temp_file, "r");
-    char buffer_line[STR_MAX_LEN];
+    char buffer_line[20*STR_MAX_LEN];
     
     if (!temp_f){
         perror("Cannot open temp_file");
@@ -190,25 +190,22 @@ void files_reducer(char* temp_file, char* output_file) {
     }
 
     sender_t* temp_linked_list = NULL;
-    while ((fgets(buffer_line, sizeof(buffer_line), temp_f)) !=  NULL){
+    while (fgets(buffer_line, 20*STR_MAX_LEN, temp_f) != NULL){
         
         buffer_line[strlen(buffer_line)-1] = '\0';
-        if (strcmp(buffer_line, "\n") != 0){
-            char* piece = strtok(buffer_line, " ");
-            if (piece != NULL) {
-                char sender[] =  " ";
-                strcpy(sender, piece);
-                temp_linked_list = add_source_to_list(temp_linked_list, sender);
-                while ((piece = strtok(NULL, " ")) != NULL) {
-                    add_recipient_to_source(find_source_in_list(temp_linked_list, sender), piece);
-                }
-            }
+        char* piece = strtok(buffer_line, " ");
+        char sender[STR_MAX_LEN];
+        strcpy(sender, piece);
+        temp_linked_list = add_source_to_list(temp_linked_list, sender);
+        while ((piece = strtok(NULL, " "))) {
+            add_recipient_to_source(find_source_in_list(temp_linked_list, sender), piece);
         }
     }
+
     fclose(temp_f);
     printf("Done reading %s\n", temp_file);
-    FILE* output = fopen(output_file, "w");
 
+    FILE* output = fopen(output_file, "w");
     if (!output){
         perror("Cannot open output_file");
         exit(EXIT_FAILURE);

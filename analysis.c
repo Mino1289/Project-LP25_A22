@@ -37,18 +37,18 @@ void parse_dir(char *path, FILE *output_file) {
         entries = readdir(dir);
         if (entries) {
             switch (entries->d_type) {
-                case DT_DIR:
-                    if (!strcmp(entries->d_name, ".") && !strcmp(entries->d_name, "..")) {
-                        concat_path(path, entries->d_name, entry_path);
-                        parse_dir(entry_path, output_file);
-                    }
-                    break;
-                case DT_REG:
+            case DT_DIR:
+                if (strcmp(entries->d_name, ".") != 0 && strcmp(entries->d_name, "..") != 0) {
                     concat_path(path, entries->d_name, entry_path);
-                    fprintf(output_file, "%s\n", entry_path);
-                    break;
-                default:
-                    break;
+                    parse_dir(entry_path, output_file);
+                }
+                break;
+            case DT_REG:
+                concat_path(path, entries->d_name, entry_path);
+                fprintf(output_file, "%s\n", entry_path);
+                break;
+            default:
+                break;
             }
         }
     } while (entries);
@@ -77,7 +77,7 @@ simple_recipient_t *add_recipient_to_list(char *recipient_email, simple_recipien
     if (recipient_email) {
         simple_recipient_t *new_mail = (simple_recipient_t *) malloc(sizeof(simple_recipient_t));
         strcpy(new_mail->email, recipient_email);
-        new_mail->next =  list;
+        new_mail->next = list;
         return new_mail;
     } else {
         return list;
