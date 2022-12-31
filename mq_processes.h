@@ -22,6 +22,6 @@ void child_process(int mq);
 pid_t *mq_make_processes(configuration_t *config, int mq);
 void close_processes(configuration_t *config, int mq, pid_t children[]);
 void mq_process_directory(configuration_t *config, int mq, pid_t children[]);
-void mq_process_files(configuration_t *config, int mq, pid_t children[]);
+void mq_process_files(char* input, char* output, uint16_t nb_proc, int mq, pid_t children[]);
 
 #endif //A2022_MQ_PROCESSES_H

@@ -4,8 +4,9 @@
 *.so
 
 *.tar.gz
-maildir*
 /build
+/maildir
+temp/*
 /maildir
 temp
 temp/*

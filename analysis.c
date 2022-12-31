@@ -61,9 +61,10 @@ void parse_dir(char *path, FILE *output_file) {
  * @param list the list to be cleared
  */
 void clear_recipient_list(simple_recipient_t *list) {
-    if (list) {
-        clear_recipient_list(list->next);
+    while (list) {
+        simple_recipient_t *next = list->next;
         free(list);
+        list = next;
     }
 }
 

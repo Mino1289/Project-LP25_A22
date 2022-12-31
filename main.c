@@ -84,23 +84,33 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     pid_t *my_children = mq_make_processes(&config, mq);
-
+	
     // Execution
+    print_msg(config, "Processing directory\n");
     mq_process_directory(&config, mq, my_children);
-
     sync_temporary_files(config.temporary_directory);
+    
     char temp_result_name[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step1_output", temp_result_name);
+    
+    print_msg(config, "Reducing files list\n");
     files_list_reducer(config.data_path, config.temporary_directory, temp_result_name);
-    mq_process_files(&config, mq, my_children);
-    sync_temporary_files(config.temporary_directory);
+    
     char step2_file[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step2_output", step2_file);
-    files_reducer(step2_file, config.output_file);
+
+    print_msg(config, "Processing files\n");
+    mq_process_files(temp_result_name, step2_file, config.process_count, mq, my_children);
+    sync_temporary_files(config.temporary_directory);
     
-    // Clean
+    print_msg(config, "Reducing files\n");
+    files_reducer(step2_file, config.output_file); // error here
+        
+    print_msg(config, "Cleaning up\n");
+    print_msg(config, "Closing processes\n");
     close_processes(&config, mq, my_children);
     free(my_children);
+    print_msg(config, "Closing message queue\n");
     close_message_queue(mq);
 
 #endif
@@ -142,6 +152,7 @@ int main(int argc, char *argv[]) {
     
     print_msg(config, "Reducing files list\n");
     files_list_reducer(config.data_path, config.temporary_directory, direct_temp_result_name);
+    
     char direct_step2_file[STR_MAX_LEN];
     concat_path(config.temporary_directory, "step2_output", direct_step2_file);
 
