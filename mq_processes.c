@@ -63,9 +63,13 @@ void child_process(int mq)
         }
 
         if (task.task_callback == NULL)
+
+        if (task.task_callback == NULL)
         {
             break;
         }
+
+        task.task_callback(&task);
 
         task.task_callback(&task);
     }
@@ -139,6 +143,7 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
         }
     }
 
+    free(children);
     for (int i = 0; i < config->process_count; i++)
     {
         if (waitpid(children[i], NULL, 0) == -1)
@@ -169,6 +174,14 @@ void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], i
         perror("msgsnd");
         exit(EXIT_FAILURE);
     }   
+    task_t task;
+    task.task_callback = &process_directory;
+
+    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
+    {
+        perror("msgsnd");
+        exit(EXIT_FAILURE);
+    }   
 }
 
 /*!
@@ -181,6 +194,14 @@ void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], i
  */
 void send_file_task_to_mq(char data_source[], char temp_files[], char target_file[], int mq, pid_t worker_pid)
 {
+    task_t task;
+    task.task_callback = &process_file;
+
+    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
+    {
+        perror("msgsnd");
+        exit(EXIT_FAILURE);
+    }
     task_t task;
     task.task_callback = &process_file;
 
@@ -275,4 +296,5 @@ void mq_process_files(char* data_source, char* temp_file, uint16_t nb_proc, int 
         exit(EXIT_FAILURE);
     }
 
+    closedir(dir);
 }

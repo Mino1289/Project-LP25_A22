@@ -20,7 +20,7 @@
  * @param source_email the e-mail to add as a string
  * @return a pointer to the updated beginning of the list
  */
-sender_t* add_source_to_list(sender_t* list, char* source_email){
+sender_t* add_source_to_list(sender_t* list, char* source_email) {
     sender_t* temp_sender = find_source_in_list(list, source_email);
 
     if (temp_sender == NULL) {
@@ -180,36 +180,32 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
  * @param temp_file path to temp output file
  * @param output_file final output file to be written by your function
  */
-void files_reducer(char* temp_file, char* output_file)
-{
+void files_reducer(char* temp_file, char* output_file) {
     FILE* temp_f = fopen(temp_file, "r");
-    char buffer_line[STR_MAX_LEN];
+    char buffer_line[20*STR_MAX_LEN];
     
-    if (!temp_f){ // error here
+    if (!temp_f){
         perror("Cannot open temp_file");
         exit(EXIT_FAILURE);
     }
 
     sender_t* temp_linked_list = NULL;
-    while ((fgets(buffer_line, sizeof(buffer_line), temp_f)) !=  NULL){
+    while (fgets(buffer_line, 20*STR_MAX_LEN, temp_f) != NULL){
         
         buffer_line[strlen(buffer_line)-1] = '\0';
-        if (strcmp(buffer_line, "\n") != 0){
-            char* piece = strtok(buffer_line, " ");
-            if (piece != NULL) {
-                char sender[] =  " ";
-                strcpy(sender, piece);
-                temp_linked_list = add_source_to_list(temp_linked_list, sender);
-                while ((piece = strtok(NULL, " ")) != NULL) {
-                    add_recipient_to_source(find_source_in_list(temp_linked_list, sender), piece);
-                }
-            }
+        char* piece = strtok(buffer_line, " ");
+        char sender[STR_MAX_LEN];
+        strcpy(sender, piece);
+        temp_linked_list = add_source_to_list(temp_linked_list, sender);
+        while ((piece = strtok(NULL, " "))) {
+            add_recipient_to_source(find_source_in_list(temp_linked_list, sender), piece);
         }
     }
+
     fclose(temp_f);
     printf("Done reading %s\n", temp_file);
-    FILE* output = fopen(output_file, "w");
 
+    FILE* output = fopen(output_file, "w");
     if (!output){
         perror("Cannot open output_file");
         exit(EXIT_FAILURE);
@@ -218,28 +214,19 @@ void files_reducer(char* temp_file, char* output_file)
     sender_t* temp_sender = temp_linked_list;
     recipient_t* temp_recipient;
 
-    while(temp_sender != NULL){
+    while (temp_sender != NULL) {
         temp_recipient = temp_sender->head;
-        char* dest_line = (char*) malloc(sizeof(char)*(STR_MAX_LEN));
-        sprintf(dest_line, "%s ", temp_sender->sender_address);
-        
-        while (temp_recipient != NULL){
-            char* dest_recipient = (char*) malloc(sizeof(char)*(STR_MAX_LEN+3));
-            sprintf(dest_recipient, "%d:%s ", temp_recipient->occurrences, temp_recipient->recipient_address);
-            if (strlen(dest_line) + strlen(dest_recipient) > sizeof(*dest_line)) {
-                // realloc dest_line
-                dest_line = (char*) realloc(dest_line, sizeof(char)*(strlen(dest_line) + strlen(dest_recipient)+1));
-            } 
-            strcat(dest_line, dest_recipient);
+        fprintf(output, "%s ", temp_sender->sender_address);
+
+        while (temp_recipient != NULL) {
+            fprintf(output, "%d:%s ", temp_recipient->occurrences, temp_recipient->recipient_address);
             temp_recipient = temp_recipient->next;
-            free(dest_recipient);
         }
-        
-        fputs(dest_line, output);
-        fputs("\n", output);
+        fprintf(output, "\n");
         temp_sender = temp_sender->next;
-        free(dest_line);
     }
+
+
     fclose(output);
     clear_sources_list(temp_linked_list);
 }

@@ -31,8 +31,10 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
     }
     DIR *dir = opendir(data_source);
     // TODO: Memory leak
+    // TODO: Memory leak
     if (!dir) {
         printf("Error: could not open data source directory.\n");
+        closedir(dir);
         closedir(dir);
         return;
     }
@@ -41,6 +43,8 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
     // 2. Iterate over directories (ignore . and ..)
     while (entry != NULL) {
         if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+            char entry_path[STR_MAX_LEN];
+            concat_path(data_source, entry->d_name, entry_path);
             char entry_path[STR_MAX_LEN];
             concat_path(data_source, entry->d_name, entry_path);
             if (directory_exists(entry_path)) {
@@ -71,6 +75,7 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
                 } else {
                     // error
                     printf("Error: could not fork.\n");
+                    closedir(dir);
                     exit(EXIT_FAILURE);
                 }
             }
@@ -105,6 +110,7 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
     // 2. Iterate over files in files list (step1_output)
     FILE* files_list = fopen(data_source, "r");
     if (files_list == NULL) {
+        fclose(files_list);
         printf("Error: could not open %s.\n", data_source);
         return;
     }
@@ -138,12 +144,14 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
             } else {
                 // error
                 printf("Error: could not fork.\n");
+                fclose(files_list);
                 exit(EXIT_FAILURE);
             }
         }
     }
 
     // 4. Cleanup
+    
     for (int i = 0; i < current_proc; ++i) {
         wait(NULL);
     }

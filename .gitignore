@@ -7,7 +7,12 @@
 /build
 /maildir
 temp/*
+/maildir
+temp
+temp/*
 main
+config
+test_output
 
 .vscode
 *.tgz
