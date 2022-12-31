@@ -54,7 +54,6 @@ void parse_dir(char *path, FILE *output_file) {
     } while (entries);
     // 3. Clear all allocated resources (dirent pointer should not be free'd)
     closedir(dir);
-    //free(entry_path);
 }
 
 /*!
