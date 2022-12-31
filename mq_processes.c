@@ -173,15 +173,7 @@ void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], i
     {
         perror("msgsnd");
         exit(EXIT_FAILURE);
-    }   
-    task_t task;
-    task.task_callback = &process_directory;
-
-    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
-    {
-        perror("msgsnd");
-        exit(EXIT_FAILURE);
-    }   
+    }
 }
 
 /*!
@@ -194,14 +186,6 @@ void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], i
  */
 void send_file_task_to_mq(char data_source[], char temp_files[], char target_file[], int mq, pid_t worker_pid)
 {
-    task_t task;
-    task.task_callback = &process_file;
-
-    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
-    {
-        perror("msgsnd");
-        exit(EXIT_FAILURE);
-    }
     task_t task;
     task.task_callback = &process_file;
 
@@ -295,6 +279,4 @@ void mq_process_files(char* data_source, char* temp_file, uint16_t nb_proc, int 
         printf("Error: temp_file is NULL\n");
         exit(EXIT_FAILURE);
     }
-
-    closedir(dir);
 }
