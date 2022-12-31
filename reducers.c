@@ -27,10 +27,13 @@ sender_t* add_source_to_list(sender_t* list, char* source_email) {
         sender_t* temp_sender = (sender_t*)malloc(sizeof(sender_t));
         strncpy(temp_sender->sender_address, source_email, STR_MAX_LEN);
 
-        if (list != NULL) {
+        if (list != NULL)
+        {
             temp_sender->next = list;
             list->prev = temp_sender;
-        } else {
+        }
+        else
+        {
             temp_sender->next = NULL;
             temp_sender->prev = NULL;
         }
@@ -49,10 +52,13 @@ sender_t* add_source_to_list(sender_t* list, char* source_email) {
  */
 void clear_sources_list(sender_t* list){
     sender_t* temp = list;
-    while (temp != NULL) {
+    while (temp != NULL)
+    {
         list = list->next;
-        if (temp->head != NULL) {
-            while (temp->head->next != NULL) {
+        if (temp->head != NULL)
+        {
+            while (temp->head->next != NULL)
+            {
                 temp->head = temp->head->next;
                 free(temp->head->prev);
             }
@@ -70,7 +76,8 @@ void clear_sources_list(sender_t* list){
  */
 sender_t* find_source_in_list(sender_t* list, char* source_email){
     sender_t* temp = list;
-    while (temp != NULL && strcmp(temp->sender_address, source_email) != 0) {
+    while (temp != NULL && strcmp(temp->sender_address, source_email) != 0)
+    {
         temp = temp->next;
     }
     return temp;
@@ -143,11 +150,11 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
         // Skip the ".", ".." and the output entries
         if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
             
-
             // Construct the full path to the temporary file
             char temp_file_path[STR_MAX_LEN];
             concat_path(temp_files, entry->d_name, temp_file_path);
-            if (strncmp(temp_file_path, output_file, STR_MAX_LEN)) {
+            if (strncmp(temp_file_path, output_file, STR_MAX_LEN))
+            {
                 // Open the temporary file for reading
                 FILE* temp_file = fopen(temp_file_path, "r");
                 if (!temp_file) {
@@ -155,7 +162,8 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
                     exit(EXIT_FAILURE);
                 }
 
-                while(fgets(buffer, sizeof(buffer), temp_file) != NULL){
+                while(fgets(buffer, sizeof(buffer), temp_file) != NULL)
+                {
                     // buffer[strlen(buffer)-1] = '\0';
                     fputs(buffer, output);
                 }
@@ -180,7 +188,8 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
  * @param temp_file path to temp output file
  * @param output_file final output file to be written by your function
  */
-void files_reducer(char* temp_file, char* output_file) {
+void files_reducer(char* temp_file, char* output_file)
+{
     FILE* temp_f = fopen(temp_file, "r");
     char buffer_line[20*STR_MAX_LEN];
     
@@ -225,7 +234,6 @@ void files_reducer(char* temp_file, char* output_file) {
         fprintf(output, "\n");
         temp_sender = temp_sender->next;
     }
-
 
     fclose(output);
     clear_sources_list(temp_linked_list);

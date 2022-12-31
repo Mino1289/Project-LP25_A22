@@ -49,7 +49,6 @@ bool directory_exists(char *path) {
         closedir(dir);
         return true;
     } else {
-        closedir(dir);
         return false;
     }
     
