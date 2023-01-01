@@ -215,7 +215,6 @@ void files_reducer(char* temp_file, char* output_file) {
     }
 
     fclose(temp_f);
-    printf("Done reading %s\n", temp_file);
 
     FILE* output = fopen(output_file, "w");
     if (!output){
