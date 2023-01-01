@@ -182,17 +182,25 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
  */
 void files_reducer(char* temp_file, char* output_file) {
     FILE* temp_f = fopen(temp_file, "r");
-    char buffer_line[20*STR_MAX_LEN];
-    
+    char* buffer_line = NULL;
+
     if (!temp_f){
         perror("Cannot open temp_file");
         exit(EXIT_FAILURE);
     }
 
     sender_t* temp_linked_list = NULL;
-    while (fgets(buffer_line, 20*STR_MAX_LEN, temp_f) != NULL){
+    size_t buffer_size = 0;
+    while (getline(&buffer_line, &buffer_size, temp_f) != EOF){
+        if (buffer_size <= 120) {
+            buffer_size = strlen(buffer_line);
+        }
         
-        buffer_line[strlen(buffer_line)-1] = '\0';
+        buffer_line[buffer_size-1] = '\0';
+        char * newline;
+        while ((newline = strchr(buffer_line, '\n')) != NULL) {
+            *newline = '\0';
+        }
         char* piece = strtok(buffer_line, " ");
         char sender[STR_MAX_LEN];
         strcpy(sender, piece);
@@ -202,6 +210,8 @@ void files_reducer(char* temp_file, char* output_file) {
         while ((piece = strtok(NULL, " "))) {
             add_recipient_to_source(source, piece);
         }
+        buffer_size = 0;
+        free(buffer_line);
     }
 
     fclose(temp_f);
