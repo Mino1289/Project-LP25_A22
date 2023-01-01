@@ -63,13 +63,9 @@ void child_process(int mq)
         }
 
         if (task.task_callback == NULL)
-
-        if (task.task_callback == NULL)
         {
             break;
         }
-
-        task.task_callback(&task);
 
         task.task_callback(&task);
     }
@@ -84,18 +80,7 @@ void child_process(int mq)
  */
 pid_t *mq_make_processes(configuration_t *config, int mq)
 {
-    if (config == NULL)
-    {
-        return NULL;
-    }
-
-    pid_t *children = malloc(config->process_count * sizeof(pid_t));
-    if (children == NULL)
-    {
-        perror("malloc");
-        exit(EXIT_FAILURE);
-    }
-
+    pid_t *children = malloc(sizeof(pid_t) * config->process_count);
     for (int i = 0; i < config->process_count; i++)
     {
         pid_t pid = fork();
@@ -107,16 +92,15 @@ pid_t *mq_make_processes(configuration_t *config, int mq)
         else if (pid == 0)
         {
             child_process(mq);
-            exit(EXIT_SUCCESS);
         }
         else
         {
             children[i] = pid;
         }
     }
-
     return children;
 }
+
 
 /*!
  * @brief close_processes commands all workers to terminate
@@ -126,16 +110,10 @@ pid_t *mq_make_processes(configuration_t *config, int mq)
  */
 void close_processes(configuration_t *config, int mq, pid_t children[])
 {
-    if (config == NULL || children == NULL)
-    {
-        return;
-    }
-
-    task_t task;
-    task.task_callback = NULL;
-
     for (int i = 0; i < config->process_count; i++)
     {
+        task_t task;
+        task.task_callback = NULL;
         if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
         {
             perror("msgsnd");
@@ -143,10 +121,10 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
         }
     }
 
-    free(children);
     for (int i = 0; i < config->process_count; i++)
     {
-        if (waitpid(children[i], NULL, 0) == -1)
+        int status;
+        if (waitpid(children[i], &status, 0) == -1)
         {
             perror("waitpid");
             exit(EXIT_FAILURE);
@@ -166,14 +144,7 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
  */
 void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], int mq, pid_t worker_pid)
 {
-    task_t task;
-    task.task_callback = &process_directory;
-
-    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
-    {
-        perror("msgsnd");
-        exit(EXIT_FAILURE);
-    }
+    
 }
 
 /*!
@@ -183,19 +154,12 @@ void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], i
  * @param target_file the target filename
  * @param mq the MQ descriptor
  * @param worker_pid the worker's PID
+ * @param file_task the file_task to send
  */
 void send_file_task_to_mq(char data_source[], char temp_files[], char target_file[], int mq, pid_t worker_pid)
 {
-    task_t task;
-    task.task_callback = &process_file;
 
-    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
-    {
-        perror("msgsnd");
-        exit(EXIT_FAILURE);
-    }
 }
-
 
 /*!
  * @brief mq_process_directory root function for parallelizing directory analysis over workers. Must keep track of the
@@ -260,6 +224,7 @@ void mq_process_directory(configuration_t *config, int mq, pid_t children[])
     }
 
     closedir(dir);
+    exit(EXIT_SUCCESS);
 }
 
 /*!
@@ -271,12 +236,5 @@ void mq_process_directory(configuration_t *config, int mq, pid_t children[])
  */
 void mq_process_files(char* data_source, char* temp_file, uint16_t nb_proc, int mq, pid_t children[])
 {
-    if (!path_to_file_exists(data_source)) {
-        printf("Error: %s does not exist\n", data_source);
-        exit(EXIT_FAILURE);
-    }
-    if (temp_file == NULL) {
-        printf("Error: temp_file is NULL\n");
-        exit(EXIT_FAILURE);
-    }
+    
 }
