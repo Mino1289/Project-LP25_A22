@@ -25,10 +25,6 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
         printf("Error: data source directory does not exist.\n");
         return;
     }
-    if (!directory_exists(temp_files)) {
-        printf("Error: temporary files directory does not exist.\n");
-        return;
-    }
     DIR *dir = opendir(data_source);
     // TODO: Memory leak
     if (!dir) {
@@ -148,6 +144,7 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
     }
 
     // 4. Cleanup
+    
     for (int i = 0; i < current_proc; ++i) {
         wait(NULL);
     }

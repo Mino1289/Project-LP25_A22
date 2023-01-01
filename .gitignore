@@ -4,12 +4,12 @@
 *.so
 
 *.tar.gz
-maildir*
 /build
 /maildir
 temp/*
 main
 config
+test_output
 
 .vscode
 *.tgz
