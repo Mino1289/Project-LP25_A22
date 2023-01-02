@@ -192,6 +192,11 @@ void files_reducer(char* temp_file, char* output_file) {
     sender_t* temp_linked_list = NULL;
     size_t buffer_size = 0;
     while (getline(&buffer_line, &buffer_size, temp_f) != EOF){
+        if (buffer_size <= 120) {
+            buffer_size = strlen(buffer_line)+1;
+        }
+        buffer_line[buffer_size-1] = '\0';
+
         char* newline;
         while ((newline = strchr(buffer_line, '\n')) != NULL) {
             *newline = '\0';
