@@ -83,32 +83,35 @@ sender_t* find_source_in_list(sender_t* list, char* source_email){
  * @param source a pointer to the source to add/update the recipient to
  * @param recipient_email the recipient e-mail to add/update as a string
  */
-void add_recipient_to_source(sender_t* source, char* recipient_email){
-    if (source != NULL) {
-        recipient_t* temp = source->head;
+void add_recipient_to_source(sender_t* source, char* recipient_email) {
+    if (!source) return;
 
-        while (temp != NULL && strcmp(temp->recipient_address, recipient_email) != 0) {
-            temp = temp->next;
-        }
-        if (temp != NULL) {
-            ++(temp->occurrences);
-        } else {
-            recipient_t* new_recipient = (recipient_t*)malloc(sizeof(recipient_t));
-            strncpy(new_recipient->recipient_address, recipient_email, STR_MAX_LEN);
-            new_recipient->occurrences = 1;
+    if (!source->head) {
+        recipient_t* new_recipient = (recipient_t*)malloc(sizeof(recipient_t));
+        strncpy(new_recipient->recipient_address, recipient_email, STR_MAX_LEN);
+        new_recipient->occurrences = 1;
+        source->head = new_recipient;
+            source->tail = new_recipient;
+            new_recipient->next = NULL;
+            new_recipient->prev = NULL;
+    }
 
-            if (source->head == NULL) {
-                source->head = new_recipient;
-                source->tail = new_recipient;
-                new_recipient->next = NULL;
-                new_recipient->prev = NULL;
-            } else {
-                new_recipient->next = source->head;
-                source->head->prev = new_recipient;
-                new_recipient->prev = NULL;
-                source->head = new_recipient;
-            }
-        }
+    recipient_t* temp = source->head;
+
+    while (temp != NULL && strcmp(temp->recipient_address, recipient_email) != 0) {
+        temp = temp->next;
+    }
+    if (temp != NULL) {
+        ++(temp->occurrences);
+    } else {
+        recipient_t* new_recipient = (recipient_t*)malloc(sizeof(recipient_t));
+        strncpy(new_recipient->recipient_address, recipient_email, STR_MAX_LEN);
+        new_recipient->occurrences = 1;
+        
+        new_recipient->next = source->head;
+        source->head->prev = new_recipient;
+        new_recipient->prev = NULL;
+        source->head = new_recipient;
     }
 }
 
@@ -202,7 +205,7 @@ void files_reducer(char* temp_file, char* output_file) {
             *newline = '\0';
         }
 
-	    char* piece = strtok(buffer_line, " ");
+	      char* piece = strtok(buffer_line, " ");
         char sender[STR_MAX_LEN];
         strcpy(sender, piece);
         temp_linked_list = add_source_to_list(temp_linked_list, sender);
