@@ -92,11 +92,17 @@ simple_recipient_t *add_recipient_to_list(char *recipient_email, simple_recipien
  * @param destination the buffer into which the e-mail is copied
  */
 void extract_e_mail(char *buffer, char *destination) {
-    sscanf(buffer, "%[^\n]", destination); //getting rid of \n
-    char *last = strrchr(destination, ' '); //finding last word
-    if (last) strncpy(destination, last, STR_MAX_LEN);
+    sscanf(buffer, "%[^\n]", destination);  // récupère le premier mot (mot délimité par des espaces ou des tabulations)
+    char *last_space = strrchr(destination, ' ');  // trouve le dernier espace
+    if (last_space) {
+        char *last_word = last_space + 1;  // trouve le dernier mot en démarrant juste après le dernier espace
+        char temp[STR_MAX_LEN];
+        strncpy(temp, last_word, STR_MAX_LEN);
+        strncpy(destination, temp, STR_MAX_LEN);
+    }
     sscanf(destination, "%s", destination); //getting rid of tabs and spaces
 }
+
 
 /*!
  * @brief extract_emails extracts all the e-mails from a buffer and put the e-mails into a recipients list

@@ -142,7 +142,6 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
             exit(EXIT_FAILURE);
         }
     }
-
     for (int i = 0; i < config->process_count; i++)
     {
         if (waitpid(children[i], NULL, 0) == -1)
@@ -151,7 +150,6 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
             exit(EXIT_FAILURE);
         }
     }
-
     free(children);
 }
 
@@ -212,7 +210,7 @@ void mq_process_directory(configuration_t *config, int mq, pid_t children[])
     {
         return;
     }
-
+    
     int tasks_count = 0;
     int workers_count = config->process_count;
     int workers_done = 0;
@@ -242,7 +240,6 @@ void mq_process_directory(configuration_t *config, int mq, pid_t children[])
                     perror("msgrcv");
                     exit(EXIT_FAILURE);
                 }
-
                 send_task_to_mq(config->data_path, config->temporary_directory, entry->d_name, mq, children[tasks_count]);
             }
         }
@@ -326,3 +323,4 @@ void mq_process_files(configuration_t *config, int mq, pid_t children[])
 
     closedir(dir);
 }
+

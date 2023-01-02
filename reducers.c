@@ -83,7 +83,7 @@ sender_t* find_source_in_list(sender_t* list, char* source_email){
  * @param source a pointer to the source to add/update the recipient to
  * @param recipient_email the recipient e-mail to add/update as a string
  */
-void add_recipient_to_source(sender_t* source, char* recipient_email){
+void add_recipient_to_source(sender_t* source, char* recipient_email) {
     if (!source) return;
 
     if (!source->head) {
@@ -107,12 +107,11 @@ void add_recipient_to_source(sender_t* source, char* recipient_email){
         recipient_t* new_recipient = (recipient_t*)malloc(sizeof(recipient_t));
         strncpy(new_recipient->recipient_address, recipient_email, STR_MAX_LEN);
         new_recipient->occurrences = 1;
-
-
-            new_recipient->next = source->head;
-            source->head->prev = new_recipient;
-            new_recipient->prev = NULL;
-            source->head = new_recipient;
+        
+        new_recipient->next = source->head;
+        source->head->prev = new_recipient;
+        new_recipient->prev = NULL;
+        source->head = new_recipient;
     }
 }
 
@@ -196,24 +195,30 @@ void files_reducer(char* temp_file, char* output_file) {
     sender_t* temp_linked_list = NULL;
     size_t buffer_size = 0;
     while (getline(&buffer_line, &buffer_size, temp_f) != EOF){
+        if (buffer_size <= 120) {
+            buffer_size = strlen(buffer_line)+1;
+        }
+        buffer_line[buffer_size-1] = '\0';
 
-        char *newline;
+        char* newline;
         while ((newline = strchr(buffer_line, '\n')) != NULL) {
             *newline = '\0';
         }
-        char* piece = strtok(buffer_line, " ");
+
+	      char* piece = strtok(buffer_line, " ");
         char sender[STR_MAX_LEN];
         strcpy(sender, piece);
         temp_linked_list = add_source_to_list(temp_linked_list, sender);
         
         sender_t *source = find_source_in_list(temp_linked_list, sender);
         while ((piece = strtok(NULL, " "))) {
-           add_recipient_to_source(source, piece);
+            add_recipient_to_source(source, piece);
         }
-        source = source;
-        buffer_size = 0;
-        free(buffer_line);
+        
+        buffer_size = 0; // reset buffer size so getline will allocate a new buffer & not use the old one & economize memory
+        free(buffer_line); // free the old buffer
     }
+    free(buffer_line);
 
     fclose(temp_f);
 
