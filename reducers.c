@@ -192,16 +192,12 @@ void files_reducer(char* temp_file, char* output_file) {
     sender_t* temp_linked_list = NULL;
     size_t buffer_size = 0;
     while (getline(&buffer_line, &buffer_size, temp_f) != EOF){
-        if (buffer_size <= 120) {
-            buffer_size = strlen(buffer_line);
-        }
-        
-        buffer_line[buffer_size-1] = '\0';
-        char * newline;
+        char* newline;
         while ((newline = strchr(buffer_line, '\n')) != NULL) {
             *newline = '\0';
         }
-        char* piece = strtok(buffer_line, " ");
+
+	    char* piece = strtok(buffer_line, " ");
         char sender[STR_MAX_LEN];
         strcpy(sender, piece);
         temp_linked_list = add_source_to_list(temp_linked_list, sender);
@@ -210,9 +206,11 @@ void files_reducer(char* temp_file, char* output_file) {
         while ((piece = strtok(NULL, " "))) {
             add_recipient_to_source(source, piece);
         }
-        buffer_size = 0;
-        free(buffer_line);
+        
+        buffer_size = 0; // reset buffer size so getline will allocate a new buffer & not use the old one & economize memory
+        free(buffer_line); // free the old buffer
     }
+    free(buffer_line);
 
     fclose(temp_f);
 
