@@ -73,6 +73,7 @@ void child_process(int mq)
 
         task.task_callback(&task);
     }
+    exit(EXIT_SUCCESS);
 }
 
 /*!
@@ -106,6 +107,7 @@ pid_t *mq_make_processes(configuration_t *config, int mq)
         else if (pid == 0)
         {
             child_process(mq);
+            exit(EXIT_SUCCESS);
         }
         else
         {
