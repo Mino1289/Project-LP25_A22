@@ -23,5 +23,6 @@ configuration_t *make_configuration(configuration_t *base_configuration, char *a
 configuration_t *read_cfg_file(configuration_t *base_configuration, char *path_to_cfg_file);
 void display_configuration(configuration_t *configuration);
 bool is_configuration_valid(configuration_t *configuration);
+void print_msg(configuration_t config, char *msg, ...);
 
 #endif //A2022_CONFIGURATION_H

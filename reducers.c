@@ -20,7 +20,7 @@
  * @param source_email the e-mail to add as a string
  * @return a pointer to the updated beginning of the list
  */
-sender_t* add_source_to_list(sender_t* list, char* source_email){
+sender_t* add_source_to_list(sender_t* list, char* source_email) {
     sender_t* temp_sender = find_source_in_list(list, source_email);
 
     if (temp_sender == NULL) {
@@ -39,9 +39,8 @@ sender_t* add_source_to_list(sender_t* list, char* source_email){
         temp_sender->tail = NULL;
 
         return temp_sender;
-    } else {
-        return list;
-    }
+    } 
+    return list;
 }
 
 /*!
@@ -49,18 +48,18 @@ sender_t* add_source_to_list(sender_t* list, char* source_email){
  * @param list a pointer to the list to clear
  */
 void clear_sources_list(sender_t* list){
-    if (list == NULL) {
-        return;
-    } else {
-        clear_sources_list(list->next);
-        if (list->head != NULL) {
-            while (list->head->next != NULL) {
-                list->head = list->head->next;
-                free(list->head->prev);
+    sender_t* temp = list;
+    while (temp != NULL) {
+        list = list->next;
+        if (temp->head != NULL) {
+            while (temp->head->next != NULL) {
+                temp->head = temp->head->next;
+                free(temp->head->prev);
             }
-            free(list->head);
+            free(temp->head);
         }
-        free(list);
+        free(temp);
+        temp = list;
     }
 }
 /*!
@@ -71,15 +70,10 @@ void clear_sources_list(sender_t* list){
  */
 sender_t* find_source_in_list(sender_t* list, char* source_email){
     sender_t* temp = list;
-
     while (temp != NULL && strcmp(temp->sender_address, source_email) != 0) {
         temp = temp->next;
     }
-    if (temp == NULL) {
-        return NULL;
-    } else {
-        return temp;
-    }
+    return temp;
 }
 
 /*!
@@ -89,32 +83,35 @@ sender_t* find_source_in_list(sender_t* list, char* source_email){
  * @param source a pointer to the source to add/update the recipient to
  * @param recipient_email the recipient e-mail to add/update as a string
  */
-void add_recipient_to_source(sender_t* source, char* recipient_email){
-    if (source != NULL) {
-        recipient_t* temp = source->head;
+void add_recipient_to_source(sender_t* source, char* recipient_email) {
+    if (!source) return;
 
-        while (temp != NULL && strcmp(temp->recipient_address, recipient_email) != 0) {
-            temp = temp->next;
-        }
-        if (temp != NULL) {
-            ++temp->occurrences;
-        } else {
-            recipient_t* new_recipient = (recipient_t*)malloc(sizeof(recipient_t));
-            strncpy(new_recipient->recipient_address, recipient_email, STR_MAX_LEN);
-            new_recipient->occurrences = 1;
+    if (!source->head) {
+        recipient_t* new_recipient = (recipient_t*)malloc(sizeof(recipient_t));
+        strncpy(new_recipient->recipient_address, recipient_email, STR_MAX_LEN);
+        new_recipient->occurrences = 1;
+        source->head = new_recipient;
+            source->tail = new_recipient;
+            new_recipient->next = NULL;
+            new_recipient->prev = NULL;
+    }
 
-            if (source->head == NULL) {
-                source->head = new_recipient;
-                source->tail = new_recipient;
-                new_recipient->next = NULL;
-                new_recipient->prev = NULL;
-            } else {
-                new_recipient->next = source->head;
-                source->head->prev = new_recipient;
-                new_recipient->prev = NULL;
-                source->head = new_recipient;
-            }
-        }
+    recipient_t* temp = source->head;
+
+    while (temp != NULL && strcmp(temp->recipient_address, recipient_email) != 0) {
+        temp = temp->next;
+    }
+    if (temp != NULL) {
+        ++(temp->occurrences);
+    } else {
+        recipient_t* new_recipient = (recipient_t*)malloc(sizeof(recipient_t));
+        strncpy(new_recipient->recipient_address, recipient_email, STR_MAX_LEN);
+        new_recipient->occurrences = 1;
+        
+        new_recipient->next = source->head;
+        source->head->prev = new_recipient;
+        new_recipient->prev = NULL;
+        source->head = new_recipient;
     }
 }
 
@@ -127,6 +124,56 @@ void add_recipient_to_source(sender_t* source, char* recipient_email){
  */
 void files_list_reducer(char* data_source, char* temp_files, char* output_file)
 {
+    // Open the output file for writing
+    FILE* output = fopen(output_file, "w");
+    if (!output) {
+        perror("Cannot open output_file");
+        exit(EXIT_FAILURE);
+    }
+
+    // Open the temporary files directory
+    DIR* temp_dir = opendir(temp_files);
+    if (!temp_dir) {
+        perror("Cannot open directory");
+        exit(EXIT_FAILURE);
+    }
+
+    // Read the entries in the directory
+    char buffer[STR_MAX_LEN];
+    struct dirent* entry;
+    while ((entry = readdir(temp_dir)) != NULL) {
+        
+        // Skip the ".", ".." and the output entries
+        if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")) {
+            
+
+            // Construct the full path to the temporary file
+            char temp_file_path[STR_MAX_LEN];
+            concat_path(temp_files, entry->d_name, temp_file_path);
+            if (strncmp(temp_file_path, output_file, STR_MAX_LEN)) {
+                // Open the temporary file for reading
+                FILE* temp_file = fopen(temp_file_path, "r");
+                if (!temp_file) {
+                    perror("Cannot open file");
+                    exit(EXIT_FAILURE);
+                }
+
+                while(fgets(buffer, sizeof(buffer), temp_file) != NULL){
+                    // buffer[strlen(buffer)-1] = '\0';
+                    fputs(buffer, output);
+                }
+                // Close the temporary file
+                fclose(temp_file);
+            }
+        }
+    }
+
+    // Close the output file and temporary files directory
+    fclose(output);
+    closedir(temp_dir);
+
+    //sync the system
+    sync();
 }
 
 /*!
@@ -136,6 +183,67 @@ void files_list_reducer(char* data_source, char* temp_files, char* output_file)
  * @param temp_file path to temp output file
  * @param output_file final output file to be written by your function
  */
-void files_reducer(char* temp_file, char* output_file)
-{
+void files_reducer(char* temp_file, char* output_file) {
+    FILE* temp_f = fopen(temp_file, "r");
+    char* buffer_line = NULL;
+
+    if (!temp_f){
+        perror("Cannot open temp_file");
+        exit(EXIT_FAILURE);
+    }
+
+    sender_t* temp_linked_list = NULL;
+    size_t buffer_size = 0;
+    while (getline(&buffer_line, &buffer_size, temp_f) != EOF){
+        if (buffer_size <= 120) {
+            buffer_size = strlen(buffer_line)+1;
+        }
+        buffer_line[buffer_size-1] = '\0';
+
+        char* newline;
+        while ((newline = strchr(buffer_line, '\n')) != NULL) {
+            *newline = '\0';
+        }
+
+	      char* piece = strtok(buffer_line, " ");
+        char sender[STR_MAX_LEN];
+        strcpy(sender, piece);
+        temp_linked_list = add_source_to_list(temp_linked_list, sender);
+        
+        sender_t *source = find_source_in_list(temp_linked_list, sender);
+        while ((piece = strtok(NULL, " "))) {
+            add_recipient_to_source(source, piece);
+        }
+        
+        buffer_size = 0; // reset buffer size so getline will allocate a new buffer & not use the old one & economize memory
+        free(buffer_line); // free the old buffer
+    }
+    free(buffer_line);
+
+    fclose(temp_f);
+
+    FILE* output = fopen(output_file, "w");
+    if (!output){
+        perror("Cannot open output_file");
+        exit(EXIT_FAILURE);
+    }
+    
+    sender_t* temp_sender = temp_linked_list;
+    recipient_t* temp_recipient;
+
+    while (temp_sender != NULL) {
+        temp_recipient = temp_sender->head;
+        fprintf(output, "%s ", temp_sender->sender_address);
+
+        while (temp_recipient != NULL) {
+            fprintf(output, "%d:%s ", temp_recipient->occurrences, temp_recipient->recipient_address);
+            temp_recipient = temp_recipient->next;
+        }
+        fprintf(output, "\n");
+        temp_sender = temp_sender->next;
+    }
+
+
+    fclose(output);
+    clear_sources_list(temp_linked_list);
 }

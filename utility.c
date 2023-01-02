@@ -10,10 +10,7 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <fcntl.h>
-
-
-#include <stdio.h>
-//TODO: remove
+#include <stdio.h> //for path_to_file_exists, may remove file existence check
 
 #include "global_defs.h"
 
@@ -45,15 +42,13 @@ char *concat_path(char *prefix, char *suffix, char *full_path) {
  * @param path the path whose existence to test
  * @return true if directory exists, false else
  */
-bool directory_exists(char *path)
-{
+bool directory_exists(char *path) {
     if (!path) return false;
     DIR *dir = opendir(path);
     if (dir) {
         closedir(dir);
         return true;
     } else {
-        closedir(dir);
         return false;
     }
     
@@ -67,11 +62,23 @@ bool directory_exists(char *path)
  * @return true if path to file exists, false else
  */
 bool path_to_file_exists(char *path) {
-    char* path_to_file = (char *) malloc(sizeof(char) * STR_MAX_LEN);
-    path_to_file = realpath(path, path_to_file);
-    bool exists = directory_exists(path_to_file);
-    free(path_to_file);
-    return exists;
+    if (!path) return false;
+    char path_copy[STR_MAX_LEN];
+    strcpy(path_copy, path);
+    char *dir_path = dirname(path_copy);
+    bool exists = directory_exists(dir_path);
+    if (exists) {
+        // open file to check if it exists
+        FILE* f = fopen(path, "r");
+        if (f) {
+            fclose(f);
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
 }
 
 /*!
@@ -81,9 +88,14 @@ bool path_to_file_exists(char *path) {
  */
 void sync_temporary_files(char *temp_dir) {
     int fd = open(temp_dir, O_RDONLY);
+    if (fd == -1) {
+        perror("open");
+        exit(EXIT_FAILURE);
+    }
     fsync(fd);
     close(fd);
 }
+
 
 /*!
  * @brief next_dir returns the next directory entry that is not . or ..
@@ -94,6 +106,6 @@ void sync_temporary_files(char *temp_dir) {
 struct dirent *next_dir(struct dirent *entry, DIR *dir) {
     do {
         entry = readdir(dir);
-    } while (entry && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")));
+    } while (entry && (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) && entry->d_type == DT_DIR);
     return entry;
 }

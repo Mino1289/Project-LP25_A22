@@ -13,6 +13,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <sys/wait.h>
+#include <sys/wait.h>
 
 #include "utility.h"
 #include "analysis.h"
@@ -62,12 +63,17 @@ void child_process(int mq)
         }
 
         if (task.task_callback == NULL)
+
+        if (task.task_callback == NULL)
         {
             break;
         }
 
         task.task_callback(&task);
+
+        task.task_callback(&task);
     }
+    exit(EXIT_SUCCESS);
 }
 
 /*!
@@ -101,6 +107,7 @@ pid_t *mq_make_processes(configuration_t *config, int mq)
         else if (pid == 0)
         {
             child_process(mq);
+            exit(EXIT_SUCCESS);
         }
         else
         {
@@ -119,7 +126,31 @@ pid_t *mq_make_processes(configuration_t *config, int mq)
  */
 void close_processes(configuration_t *config, int mq, pid_t children[])
 {
+    if (config == NULL || children == NULL)
+    {
+        return;
+    }
 
+    task_t task;
+    task.task_callback = NULL;
+
+    for (int i = 0; i < config->process_count; i++)
+    {
+        if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
+        {
+            perror("msgsnd");
+            exit(EXIT_FAILURE);
+        }
+    }
+    for (int i = 0; i < config->process_count; i++)
+    {
+        if (waitpid(children[i], NULL, 0) == -1)
+        {
+            perror("waitpid");
+            exit(EXIT_FAILURE);
+        }
+    }
+    free(children);
 }
 
 /*!
@@ -134,7 +165,14 @@ void close_processes(configuration_t *config, int mq, pid_t children[])
  */
 void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], int mq, pid_t worker_pid)
 {
-    
+    task_t task;
+    task.task_callback = &process_directory;
+
+    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
+    {
+        perror("msgsnd");
+        exit(EXIT_FAILURE);
+    }   
 }
 
 /*!
@@ -147,7 +185,14 @@ void send_task_to_mq(char data_source[], char temp_files[], char target_dir[], i
  */
 void send_file_task_to_mq(char data_source[], char temp_files[], char target_file[], int mq, pid_t worker_pid)
 {
-    
+    task_t task;
+    task.task_callback = &process_file;
+
+    if (msgsnd(mq, &task, sizeof(task_t) - sizeof(long), 0) == -1)
+    {
+        perror("msgsnd");
+        exit(EXIT_FAILURE);
+    }
 }
 
 
@@ -161,7 +206,58 @@ void send_file_task_to_mq(char data_source[], char temp_files[], char target_fil
  */
 void mq_process_directory(configuration_t *config, int mq, pid_t children[])
 {
+    if (config == NULL)
+    {
+        return;
+    }
+    
+    int tasks_count = 0;
+    int workers_count = config->process_count;
+    int workers_done = 0;
 
+    DIR *dir = opendir(config->data_path);
+    if (dir == NULL)
+    {
+        perror("opendir");
+        exit(EXIT_FAILURE);
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (entry->d_type == DT_DIR && strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
+        {
+            if (tasks_count < workers_count)
+            {
+                send_task_to_mq(config->data_path, config->temporary_directory, entry->d_name, mq, children[tasks_count]);
+                tasks_count++;
+            }
+            else
+            {
+                task_t task;
+                if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), 0, 0) == -1)
+                {
+                    perror("msgrcv");
+                    exit(EXIT_FAILURE);
+                }
+                send_task_to_mq(config->data_path, config->temporary_directory, entry->d_name, mq, children[tasks_count]);
+            }
+        }
+    }
+
+    while (workers_done < workers_count)
+    {
+        task_t task;
+        if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), 0, 0) == -1)
+        {
+            perror("msgrcv");
+            exit(EXIT_FAILURE);
+        }
+
+        workers_done++;
+    }
+
+    closedir(dir);
 }
 
 /*!
@@ -173,5 +269,58 @@ void mq_process_directory(configuration_t *config, int mq, pid_t children[])
  */
 void mq_process_files(configuration_t *config, int mq, pid_t children[])
 {
+    if (config == NULL)
+    {
+        return;
+    }
 
+    int tasks_count = 0;
+    int workers_count = config->process_count;
+    int workers_done = 0;
+
+    DIR *dir = opendir(config->data_path);
+    if (dir == NULL)
+    {
+        perror("opendir");
+        exit(EXIT_FAILURE);
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (entry->d_type == DT_REG)
+        {
+            if (tasks_count < workers_count)
+            {
+                send_file_task_to_mq(config->data_path, config->temporary_directory, entry->d_name, mq, children[tasks_count]);
+                tasks_count++;
+            }
+            else
+            {
+                task_t task;
+                if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), 0, 0) == -1)
+                {
+                    perror("msgrcv");
+                    exit(EXIT_FAILURE);
+                }
+
+                send_file_task_to_mq(config->data_path, config->temporary_directory, entry->d_name, mq, children[tasks_count]);
+            }
+        }
+    }
+
+    while (workers_done < workers_count)
+    {
+        task_t task;
+        if (msgrcv(mq, &task, sizeof(task_t) - sizeof(long), 0, 0) == -1)
+        {
+            perror("msgrcv");
+            exit(EXIT_FAILURE);
+        }
+
+        workers_done++;
+    }
+
+    closedir(dir);
 }
+
