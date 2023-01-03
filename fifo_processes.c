@@ -82,7 +82,7 @@ pid_t *make_processes(uint16_t processes_count) {
         if (pid == 0){
             
             snprintf(buffer,sizeof(buffer),"%s%d",file_format_in,i);
-            int read_fd = open(buffer,O_RDONLY)
+            int read_fd = open(buffer,O_RDONLY);
             snprintf(buffer,sizeof(buffer),"%s%d",file_format_out,i);
             int write_fd = open(buffer,O_WRONLY);
 
@@ -100,7 +100,7 @@ pid_t *make_processes(uint16_t processes_count) {
                     exit(EXIT_SUCCESS);
                 }
                 // 3. Upon reception, apply task
-                task.task_callback(task);
+                task.task_callback(&task);
             }
 
         } else if (pid > 0) {
@@ -208,7 +208,7 @@ void send_task(char *data_source, char *temp_files, char *dir_name, int command_
     strncpy(t->temporary_directory, temp_files, STR_MAX_LEN);
 
     // Send the task to the child process
-    write(command_fd, &task, sizeof(task_t));
+    write(command_fd, &t, sizeof(task_t));
 }
 
 /*!
