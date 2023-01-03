@@ -84,7 +84,7 @@ pid_t *make_processes(uint16_t processes_count) {
             snprintf(buffer,sizeof(buffer),"%s%d",file_format_in,i);
             int read_fd = open(buffer,O_RDONLY);
             snprintf(buffer,sizeof(buffer),"%s%d",file_format_out,i);
-            int write_fd = open(buffer,O_WRONLY);
+            //int write_fd = open(buffer,O_WRONLY); //TODO: use
 
             while(1){
                 
@@ -208,7 +208,7 @@ void send_task(char *data_source, char *temp_files, char *dir_name, int command_
     strncpy(t->temporary_directory, temp_files, STR_MAX_LEN);
 
     // Send the task to the child process
-    write(command_fd, &t, sizeof(task_t));
+    write(command_fd, t, sizeof(task_t));
 }
 
 /*!
