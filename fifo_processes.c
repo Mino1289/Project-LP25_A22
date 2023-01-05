@@ -84,7 +84,7 @@ pid_t *make_processes(uint16_t processes_count) {
             snprintf(buffer,sizeof(buffer),"%s%d",file_format_in,i);
             int read_fd = open(buffer,O_RDONLY);
             snprintf(buffer,sizeof(buffer),"%s%d",file_format_out,i);
-            //int write_fd = open(buffer,O_WRONLY); //TODO: use
+            //int write_fd = open(buffer,O_WRONLY);
 
             while(1){
                 
