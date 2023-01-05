@@ -19,6 +19,7 @@
 #include <fcntl.h>
 #include <sys/sysinfo.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 
 
 #include <dirent.h>
@@ -74,6 +75,9 @@ int main(int argc, char *argv[]) {
     FILE *f = fopen(config.output_file, "w");
     fclose(f);
     // Running the analysis, based on defined method:
+
+    struct timeval tv_init, tv_end ;
+    gettimeofday(&tv_init, NULL);
 
 #ifdef METHOD_MQ
     print_msg(config, "Running analysis using message queues\n");
@@ -167,5 +171,9 @@ int main(int argc, char *argv[]) {
 #endif
 
     print_msg(config, "Analysis finished\n");
+    
+    gettimeofday(&tv_end, NULL);
+    uint32_t exec_time = 1000000*(tv_end.tv_sec - tv_init.tv_sec) + (tv_end.tv_usec - tv_init.tv_usec);
+    printf("Execution time: %u microseconds\n", exec_time);
     return 0;
 }

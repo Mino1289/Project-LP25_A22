@@ -26,7 +26,6 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
         return;
     }
     DIR *dir = opendir(data_source);
-    // TODO: Memory leak
     if (!dir) {
         printf("Error: could not open data source directory.\n");
         closedir(dir);
@@ -52,14 +51,12 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
                     char output_file[STR_MAX_LEN]; 
                     concat_path(temp_files, entry->d_name, output_file);
 
-                    directory_task_t *t = (directory_task_t *) malloc(sizeof(task_t));
+                    FILE* output = fopen(output_file, "a");
+                    if (!output) return;
 
-                    t->task_callback = process_directory;
-                    strncpy(t->object_directory, entry_path, STR_MAX_LEN);
-                    strncpy(t->temporary_directory, output_file, STR_MAX_LEN);
-                    t->task_callback((task_t*) t);
+                    parse_dir(entry_path, output);
+                    fclose(output);
 
-                    free(t);
                     closedir(dir);
                     exit(EXIT_SUCCESS);
                 } else if (pid > 0) {
@@ -80,7 +77,6 @@ void direct_fork_directories(char *data_source, char *temp_files, uint16_t nb_pr
     }
     // 4. Cleanup
     closedir(dir);
-    //TODO: Check for memory leaks
 }
 
 /*!
@@ -120,15 +116,17 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
             pid_t pid = fork();
             if (pid == 0) {
                 // child process
-                file_task_t *t = (file_task_t *) malloc(sizeof(task_t));
 
-                t->task_callback = process_file;
-                
-                strncpy(t->object_file, file_path, STR_MAX_LEN);
-                strncpy(t->temporary_directory, temp_file, STR_MAX_LEN);
-                t->task_callback((task_t*) t);
+                // realpath could be removed
+                char filepath[STR_MAX_LEN];
+                realpath(file_path, filepath);
 
-                free(t);
+                char output[STR_MAX_LEN];
+                realpath(temp_file, output);
+
+                // 3. Call parse_file
+                parse_file(filepath, output);
+
                 fclose(files_list);
                 exit(EXIT_SUCCESS);
             } else if (pid > 0) {
@@ -149,5 +147,4 @@ void direct_fork_files(char *data_source, char *temp_file, uint16_t nb_proc) {
         wait(NULL);
     }
     fclose(files_list);
-    //TODO: Check for memory leaks
 }
