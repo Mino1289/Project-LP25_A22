@@ -61,4 +61,4 @@ test: ci
 	valgrind --track-origins=yes ./$(EXECUTABLE:=.exe)
 
 clean:
-	@rm -rf $(BUILDDIR) *.so main *.tgz *.exe temp/*
+	@rm -rf $(BUILDDIR) *.so $(EXECUTABLE) *.tgz *.exe temp/*
